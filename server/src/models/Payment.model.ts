@@ -12,14 +12,12 @@ export interface IPayment extends Document {
 const PaymentSchema = new Schema<IPayment>(
   {
     loanId:      { type: Schema.Types.ObjectId, ref: 'Loan', required: true },
-    utrNumber:   { type: String, required: true, unique: true, trim: true },
+    utrNumber:   { type: String, required: true, unique: true, trim: true }, 
     amount:      { type: Number, required: true },
     paymentDate: { type: Date,   required: true },
     recordedBy:  { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   { timestamps: true }
 );
-
-PaymentSchema.index({ utrNumber: 1 }, { unique: true });
 
 export const Payment = mongoose.model<IPayment>('Payment', PaymentSchema);
