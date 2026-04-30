@@ -90,9 +90,6 @@ export default function StatusPage() {
   const [error, setError] = useState('');
 
   const fetchLoan = useCallback(async () => {
-    setError('');
-    setIsLoading(true);
-
     try {
       const response = await get<BorrowerLoanResponse>('/borrower/loan');
       const nextLoan = response.data?.loan;
@@ -103,6 +100,7 @@ export default function StatusPage() {
 
       setLoan(nextLoan);
       setPayments(response.data?.payments ?? []);
+      setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load loan details.');
     } finally {
@@ -111,7 +109,11 @@ export default function StatusPage() {
   }, []);
 
   useEffect(() => {
-    fetchLoan();
+    const timeoutId = window.setTimeout(() => {
+      void fetchLoan();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchLoan]);
 
   if (isLoading) return <PageSpinner />;

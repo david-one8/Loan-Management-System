@@ -128,7 +128,11 @@ export default function PersonalPage() {
   }, [router]);
 
   useEffect(() => {
-    fetchProfile();
+    const timeoutId = window.setTimeout(() => {
+      void fetchProfile();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchProfile]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {

@@ -69,7 +69,11 @@ export default function LoanPage() {
   }, [router]);
 
   useEffect(() => {
-    void Promise.all([loadProfile(), checkExistingLoan()]);
+    const timeoutId = window.setTimeout(() => {
+      void Promise.all([loadProfile(), checkExistingLoan()]);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [checkExistingLoan, loadProfile]);
 
   async function handleApply() {

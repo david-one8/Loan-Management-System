@@ -62,7 +62,11 @@ export default function UploadPage() {
   }, [router]);
 
   useEffect(() => {
-    loadProfile();
+    const timeoutId = window.setTimeout(() => {
+      void loadProfile();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [loadProfile]);
 
   function processFile(file: File) {
