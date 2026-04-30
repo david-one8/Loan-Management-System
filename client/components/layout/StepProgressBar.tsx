@@ -30,7 +30,6 @@ export default function StepProgressBar({ currentStep }: StepProgressBarProps) {
         {STEPS.map((step, index) => {
           const isCompleted = currentStep > step.number;
           const isCurrent   = currentStep === step.number;
-          const isUpcoming  = currentStep < step.number;
           const isLast      = index === STEPS.length - 1;
 
           return (
