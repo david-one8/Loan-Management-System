@@ -63,7 +63,7 @@ function getHomeForRole(role: Role): string {
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Read token from the cookie (localStorage is not available on edge)
