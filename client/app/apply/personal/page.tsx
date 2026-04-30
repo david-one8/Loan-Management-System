@@ -1,23 +1,25 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { get, post } from '@/lib/api';
-import type { BorrowerProfile, ProfilePayload } from '@/types';
+import { ApiError, get, post } from '@/lib/api';
 import { calculateAge } from '@/lib/utils';
+import type {
+  BorrowerProfile,
+  ProfilePayload,
+  ProfileResponse,
+  SaveProfileResponse,
+} from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { PageSpinner } from '@/components/ui/Spinner';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface FormState {
   fullName: string;
   pan: string;
   dob: string;
   monthlySalary: string;
-  employmentMode: 'salaried' | 'self-employed' | 'unemployed' | '';
+  employmentMode: ProfilePayload['employmentMode'] | '';
 }
 
 interface FormErrors {
@@ -28,12 +30,21 @@ interface FormErrors {
   employmentMode?: string;
 }
 
-// ─── Validators ───────────────────────────────────────────────────────────────
-
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+const EMPLOYMENT_OPTIONS: Array<{
+  value: ProfilePayload['employmentMode'];
+  label: string;
+  description: string;
+}> = [
+  { value: 'salaried', label: 'Salaried', description: 'Employed with fixed income' },
+  { value: 'self-employed', label: 'Self-Employed', description: 'Business or freelance income' },
+  { value: 'unemployed', label: 'Unemployed', description: 'Currently not employed' },
+];
 
 function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
+  const salary = Number(form.monthlySalary);
 
   if (!form.fullName.trim()) {
     errors.fullName = 'Full name is required.';
@@ -49,19 +60,12 @@ function validate(form: FormState): FormErrors {
 
   if (!form.dob) {
     errors.dob = 'Date of birth is required.';
-  } else {
-    const age = calculateAge(form.dob);
-    if (age < 18) errors.dob = 'You must be at least 18 years old.';
-    if (age > 65) errors.dob = 'Applicants must be under 65 years old.';
   }
 
-  const salary = Number(form.monthlySalary);
   if (!form.monthlySalary) {
     errors.monthlySalary = 'Monthly salary is required.';
-  } else if (isNaN(salary) || salary <= 0) {
+  } else if (Number.isNaN(salary) || salary <= 0) {
     errors.monthlySalary = 'Enter a valid salary amount.';
-  } else if (salary < 5000) {
-    errors.monthlySalary = 'Minimum salary is ₹5,000.';
   }
 
   if (!form.employmentMode) {
@@ -71,19 +75,18 @@ function validate(form: FormState): FormErrors {
   return errors;
 }
 
-// ─── Employment options ───────────────────────────────────────────────────────
-
-const EMPLOYMENT_OPTIONS: { value: FormState['employmentMode']; label: string; description: string }[] = [
-  { value: 'salaried',      label: 'Salaried',      description: 'Employed with a fixed monthly salary' },
-  { value: 'self-employed', label: 'Self-Employed',  description: 'Running your own business or freelancing' },
-  { value: 'unemployed',    label: 'Unemployed',     description: 'Currently not employed' },
-];
-
-// ─── Component ────────────────────────────────────────────────────────────────
+function profileToForm(profile: BorrowerProfile): FormState {
+  return {
+    fullName: profile.fullName,
+    pan: profile.pan,
+    dob: profile.dob ? profile.dob.slice(0, 10) : '',
+    monthlySalary: String(profile.monthlySalary),
+    employmentMode: profile.employmentMode,
+  };
+}
 
 export default function PersonalPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [form, setForm] = useState<FormState>({
     fullName: '',
@@ -93,74 +96,62 @@ export default function PersonalPage() {
     employmentMode: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [apiError, setApiError]   = useState('');
-  const [breFailReason, setBreFailReason] = useState('');
-  const [isSubmitting, setIsSubmitting]   = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [breError, setBreError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [existingProfile, setExistingProfile] = useState<BorrowerProfile | null>(null);
 
-  // ── Pre-fill if profile already exists ───────────────────────────
   const fetchProfile = useCallback(async () => {
     try {
-      const res = await get<BorrowerProfile>('/borrower/profile');
-      if (res.data) {
-        const p = res.data;
-        setExistingProfile(p);
-        setForm({
-          fullName:       p.fullName,
-          pan:            p.pan,
-          dob:            p.dob ? p.dob.slice(0, 10) : '',
-          monthlySalary:  String(p.monthlySalary),
-          employmentMode: p.employmentMode,
-        });
-        // If BRE already passed, skip ahead
-        if (p.breStatus === 'passed') {
+      const response = await get<ProfileResponse>('/borrower/profile');
+      const profile = response.data?.profile ?? null;
+
+      if (profile) {
+        setExistingProfile(profile);
+        setForm(profileToForm(profile));
+
+        if (profile.breStatus === 'passed') {
           router.replace('/apply/upload');
           return;
         }
-        // If BRE failed, show the reason
-        if (p.breStatus === 'failed' && p.breFailReason) {
-          setBreFailReason(p.breFailReason);
+
+        if (profile.breStatus === 'failed') {
+          setBreError(profile.breFailReason ?? 'You do not meet the eligibility criteria.');
         }
       }
-    } catch {
-      // No profile yet — that's fine, start fresh
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : 'Could not load your profile.');
     } finally {
       setIsPageLoading(false);
     }
   }, [router]);
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      fetchProfile();
-    }
-  }, [authLoading, isAuthenticated, fetchProfile]);
-
-  // ── Field handlers ────────────────────────────────────────────────
+    fetchProfile();
+  }, [fetchProfile]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
-    const next = name === 'pan' ? value.toUpperCase() : value;
-    setForm((prev) => ({ ...prev, [name]: next }));
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
+    const nextValue = name === 'pan' ? value.toUpperCase() : value;
+
+    setForm((prev) => ({ ...prev, [name]: nextValue }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
     setApiError('');
-    setBreFailReason('');
+    setBreError('');
   }
 
-  function handleEmploymentChange(value: FormState['employmentMode']) {
+  function handleEmploymentChange(value: ProfilePayload['employmentMode']) {
     setForm((prev) => ({ ...prev, employmentMode: value }));
     setErrors((prev) => ({ ...prev, employmentMode: undefined }));
-    setBreFailReason('');
+    setApiError('');
+    setBreError('');
   }
-
-  // ── Submit ────────────────────────────────────────────────────────
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setApiError('');
-    setBreFailReason('');
+    setBreError('');
 
     const validationErrors = validate(form);
     if (Object.keys(validationErrors).length > 0) {
@@ -169,39 +160,46 @@ export default function PersonalPage() {
     }
 
     setIsSubmitting(true);
+
     try {
       const payload: ProfilePayload = {
-        fullName:       form.fullName.trim(),
-        pan:            form.pan.trim(),
-        dob:            form.dob,
-        monthlySalary:  Number(form.monthlySalary),
+        fullName: form.fullName.trim(),
+        pan: form.pan.trim(),
+        dob: form.dob,
+        monthlySalary: Number(form.monthlySalary),
         employmentMode: form.employmentMode as ProfilePayload['employmentMode'],
       };
+      const response = await post<SaveProfileResponse>('/borrower/profile', payload);
+      const result = response.data;
 
-      const res = await post<BorrowerProfile>('/borrower/profile', payload);
-
-      if (!res.data) {
-        throw new Error(res.message ?? 'Failed to save profile. Please try again.');
+      if (!result?.profile || !result.bre) {
+        throw new Error(response.message ?? 'Failed to save profile. Please try again.');
       }
 
-      const profile = res.data;
+      setExistingProfile(result.profile);
 
-      if (profile.breStatus === 'passed') {
+      if (result.bre.passed) {
         router.push('/apply/upload');
-      } else if (profile.breStatus === 'failed') {
-        setBreFailReason(profile.breFailReason ?? 'You do not meet the eligibility criteria.');
       } else {
-        // Pending — treat as failure for now
-        setApiError('BRE check is pending. Please try again shortly.');
+        setBreError(result.bre.reason ?? 'You do not meet the eligibility criteria.');
       }
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      if (err instanceof ApiError) {
+        const data = err.data as SaveProfileResponse | undefined;
+
+        if (data?.bre) {
+          setExistingProfile(data.profile);
+          setBreError(data.bre.reason ?? err.message);
+        } else {
+          setApiError(err.message);
+        }
+      } else {
+        setApiError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
   }
-
-  // ── Render ────────────────────────────────────────────────────────
 
   if (isPageLoading) return <PageSpinner />;
 
@@ -209,14 +207,8 @@ export default function PersonalPage() {
   maxDob.setFullYear(maxDob.getFullYear() - 18);
   const maxDobStr = maxDob.toISOString().split('T')[0];
 
-  const minDob = new Date();
-  minDob.setFullYear(minDob.getFullYear() - 65);
-  const minDobStr = minDob.toISOString().split('T')[0];
-
   return (
     <div className="space-y-6">
-
-      {/* Page header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Personal Details</h1>
         <p className="text-sm text-gray-500 mt-1">
@@ -224,70 +216,31 @@ export default function PersonalPage() {
         </p>
       </div>
 
-      {/* BRE failure alert */}
-      {breFailReason && (
-        <div
-          role="alert"
-          className="flex items-start gap-4 bg-red-50 border border-red-200 rounded-xl p-5"
-        >
-          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-            <svg
-              className="w-5 h-5 text-red-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-              />
-            </svg>
-          </div>
+      {breError && (
+        <div role="alert" className="flex items-start gap-4 bg-red-50 border border-red-200 rounded-xl p-5">
           <div>
             <p className="text-sm font-bold text-red-800">You are not eligible for a loan</p>
-            <p className="text-sm text-red-700 mt-1 leading-relaxed">{breFailReason}</p>
-            <p className="text-xs text-red-500 mt-2">
-              Please update your details and resubmit if you believe this is incorrect.
-            </p>
+            <p className="text-sm text-red-700 mt-1 leading-relaxed">{breError}</p>
           </div>
         </div>
       )}
 
-      {/* Existing profile note */}
-      {existingProfile && !breFailReason && (
-        <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-          <svg
-            className="w-5 h-5 text-blue-500 shrink-0 mt-0.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+      {existingProfile && !breError && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
           <p className="text-sm text-blue-700">
             Your existing profile has been loaded. You can update and resubmit.
           </p>
         </div>
       )}
 
-      {/* General API error */}
       {apiError && (
-        <div role="alert" className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+        <div role="alert" className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           <p className="text-sm text-red-700 font-medium">{apiError}</p>
         </div>
       )}
 
-      {/* Form */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-6 sm:p-8">
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
-
-          {/* Full Name */}
           <Input
             label="Full Name"
             name="fullName"
@@ -301,7 +254,6 @@ export default function PersonalPage() {
             autoComplete="name"
           />
 
-          {/* PAN Number */}
           <Input
             label="PAN Number"
             name="pan"
@@ -313,11 +265,10 @@ export default function PersonalPage() {
             required
             disabled={isSubmitting}
             maxLength={10}
-            hint="Format: 5 letters · 4 digits · 1 letter (e.g. ABCDE1234F)"
+            hint="Format: 5 letters, 4 digits, 1 letter"
             className="font-mono uppercase tracking-widest"
           />
 
-          {/* Date of Birth */}
           <Input
             label="Date of Birth"
             name="dob"
@@ -328,15 +279,9 @@ export default function PersonalPage() {
             required
             disabled={isSubmitting}
             max={maxDobStr}
-            min={minDobStr}
-            hint={
-              form.dob
-                ? `Age: ${calculateAge(form.dob)} years`
-                : 'Must be between 18 and 65 years old'
-            }
+            hint={form.dob ? `Age: ${calculateAge(form.dob)} years` : 'Date of birth is required'}
           />
 
-          {/* Monthly Salary */}
           <Input
             label="Monthly Salary"
             name="monthlySalary"
@@ -347,88 +292,62 @@ export default function PersonalPage() {
             placeholder="e.g. 50000"
             required
             disabled={isSubmitting}
-            min="5000"
-            prefix="₹"
+            min="1"
+            prefix="Rs."
             hint="Your net take-home salary per month"
           />
 
-          {/* Employment Mode */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-700">
               Employment Mode <span className="text-red-500">*</span>
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {EMPLOYMENT_OPTIONS.map((opt) => {
-                const isSelected = form.employmentMode === opt.value;
+              {EMPLOYMENT_OPTIONS.map((option) => {
+                const isSelected = form.employmentMode === option.value;
+
                 return (
                   <label
-                    key={opt.value}
+                    key={option.value}
                     className={[
-                      'flex flex-col gap-1 p-4 rounded-xl border-2 cursor-pointer',
-                      'transition-all duration-150 select-none',
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white',
+                      'flex flex-col gap-1 p-4 rounded-xl border-2 cursor-pointer transition-all duration-150',
+                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white',
                       isSubmitting ? 'cursor-not-allowed opacity-60' : '',
                     ].join(' ')}
                   >
                     <input
                       type="radio"
                       name="employmentMode"
-                      value={opt.value}
+                      value={option.value}
                       checked={isSelected}
-                      onChange={() => handleEmploymentChange(opt.value as FormState['employmentMode'])}
+                      onChange={() => handleEmploymentChange(option.value)}
                       disabled={isSubmitting}
                       className="sr-only"
                     />
-                    <div className="flex items-center gap-2">
-                      {/* Custom radio circle */}
-                      <span
-                        className={[
-                          'w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center',
-                          isSelected ? 'border-blue-500' : 'border-gray-300',
-                        ].join(' ')}
-                      >
-                        {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-blue-500" />
-                        )}
-                      </span>
-                      <span className={`text-sm font-semibold ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
-                        {opt.label}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 ml-6">{opt.description}</p>
+                    <span className={`text-sm font-semibold ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                      {option.label}
+                    </span>
+                    <span className="text-xs text-gray-500">{option.description}</span>
                   </label>
                 );
               })}
             </div>
             {errors.employmentMode && (
-              <p role="alert" className="text-xs text-red-600 flex items-center gap-1 mt-1">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
+              <p role="alert" className="text-xs text-red-600 mt-1">
                 {errors.employmentMode}
               </p>
             )}
           </div>
 
-          {/* Submit */}
-          <div className="pt-2">
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              isLoading={isSubmitting}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Checking eligibility…' : 'Check Eligibility & Continue'}
-            </Button>
-            <p className="text-xs text-center text-gray-400 mt-2">
-              We&apos;ll run a quick BRE check on your details before proceeding.
-            </p>
-          </div>
-
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            isLoading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Checking eligibility...' : 'Check Eligibility & Continue'}
+          </Button>
         </form>
       </div>
     </div>
