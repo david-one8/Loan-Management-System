@@ -1,5 +1,3 @@
-// ─── Core Domain Entities ────────────────────────────────────────────────────
-
 export interface User {
   _id: string;
   email: string;
@@ -54,10 +52,13 @@ export interface Lead {
   _id: string;
   email: string;
   createdAt: string;
-  profile?: BorrowerProfile;
+  profile?: BorrowerProfile | null;
 }
 
-// ─── API Response Wrapper ─────────────────────────────────────────────────────
+export interface BreResult {
+  passed: boolean;
+  reason?: string;
+}
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -65,16 +66,12 @@ export interface ApiResponse<T> {
   data?: T;
 }
 
-// ─── Paginated Response ───────────────────────────────────────────────────────
-
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
   page: number;
   totalPages: number;
 }
-
-// ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export interface LoginPayload {
   email: string;
@@ -91,8 +88,6 @@ export interface AuthTokenResponse {
   user: User;
 }
 
-// ─── Borrower ─────────────────────────────────────────────────────────────────
-
 export interface ProfilePayload {
   fullName: string;
   pan: string;
@@ -101,15 +96,40 @@ export interface ProfilePayload {
   employmentMode: 'salaried' | 'self-employed' | 'unemployed';
 }
 
+export interface ProfileResponse {
+  profile: BorrowerProfile | null;
+}
+
+export interface SaveProfileResponse {
+  profile: BorrowerProfile;
+  bre: BreResult;
+}
+
+export interface UploadSlipResponse {
+  salarySlipUrl: string;
+  salarySlipFileName: string;
+}
+
 export interface LoanApplyPayload {
   amount: number;
   tenure: number;
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
+export interface LoanApplyResponse {
+  loan: Loan;
+}
+
+export interface BorrowerLoanResponse {
+  loan: Loan;
+  payments: Payment[];
+}
+
+export interface PaymentHistoryResponse {
+  payments: Payment[];
+}
 
 export interface SanctionActionPayload {
-  action: 'APPROVE' | 'REJECT';
+  action: 'approve' | 'reject';
   reason?: string;
 }
 
@@ -121,10 +141,9 @@ export interface RecordPaymentPayload {
 
 export interface RecordPaymentResponse {
   payment: Payment;
+  loan: Loan;
   isClosed: boolean;
 }
-
-// ─── Toast ────────────────────────────────────────────────────────────────────
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -134,14 +153,10 @@ export interface ToastMessage {
   message: string;
 }
 
-// ─── Table ────────────────────────────────────────────────────────────────────
-
 export interface TableColumn<T> {
   key: string;
   label: string;
   render?: (row: T) => React.ReactNode;
 }
-
-// ─── Step Progress ────────────────────────────────────────────────────────────
 
 export type ApplyStep = 1 | 2 | 3;
