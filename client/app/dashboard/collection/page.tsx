@@ -9,7 +9,7 @@ import type {
   RecordPaymentResponse,
   TableColumn,
 } from '@/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -107,9 +107,6 @@ export default function CollectionPage() {
   const [modal, setModal] = useState<PaymentModal>(MODAL_INIT);
 
   const fetchLoans = useCallback(async (nextPage: number) => {
-    setIsLoading(true);
-    setFetchError('');
-
     try {
       const response = await get<PaginatedResponse<LoanRow>>(
         `/collection/loans?page=${nextPage}&limit=${PAGE_LIMIT}`
@@ -120,6 +117,7 @@ export default function CollectionPage() {
       setTotal(data?.total ?? 0);
       setPage(data?.page ?? nextPage);
       setTotalPages(Math.max(1, data?.totalPages ?? 1));
+      setFetchError('');
     } catch (err) {
       setFetchError(err instanceof Error ? err.message : 'Could not load loans.');
     } finally {
@@ -128,7 +126,11 @@ export default function CollectionPage() {
   }, []);
 
   useEffect(() => {
-    fetchLoans(page);
+    const timeoutId = window.setTimeout(() => {
+      void fetchLoans(page);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchLoans, page]);
 
   function openModal(loan: LoanRow) {

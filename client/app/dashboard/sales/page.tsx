@@ -68,9 +68,6 @@ export default function SalesPage() {
   const [error, setError] = useState('');
 
   const fetchLeads = useCallback(async (nextPage: number) => {
-    setIsLoading(true);
-    setError('');
-
     try {
       const response = await get<PaginatedResponse<Lead>>(
         `/sales/leads?page=${nextPage}&limit=${PAGE_LIMIT}`
@@ -81,6 +78,7 @@ export default function SalesPage() {
       setTotal(data?.total ?? 0);
       setPage(data?.page ?? nextPage);
       setTotalPages(Math.max(1, data?.totalPages ?? 1));
+      setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load leads.');
     } finally {
@@ -89,7 +87,11 @@ export default function SalesPage() {
   }, []);
 
   useEffect(() => {
-    fetchLeads(page);
+    const timeoutId = window.setTimeout(() => {
+      void fetchLeads(page);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchLeads, page]);
 
   return (

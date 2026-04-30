@@ -40,9 +40,6 @@ export default function DisbursementPage() {
   const [modal, setModal] = useState<ModalState>(MODAL_INIT);
 
   const fetchLoans = useCallback(async (nextPage: number) => {
-    setIsLoading(true);
-    setFetchError('');
-
     try {
       const response = await get<PaginatedResponse<LoanRow>>(
         `/disbursement/loans?page=${nextPage}&limit=${PAGE_LIMIT}`
@@ -53,6 +50,7 @@ export default function DisbursementPage() {
       setTotal(data?.total ?? 0);
       setPage(data?.page ?? nextPage);
       setTotalPages(Math.max(1, data?.totalPages ?? 1));
+      setFetchError('');
     } catch (err) {
       setFetchError(err instanceof Error ? err.message : 'Could not load loans.');
     } finally {
@@ -61,7 +59,11 @@ export default function DisbursementPage() {
   }, []);
 
   useEffect(() => {
-    fetchLoans(page);
+    const timeoutId = window.setTimeout(() => {
+      void fetchLoans(page);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchLoans, page]);
 
   function openModal(loan: LoanRow) {
