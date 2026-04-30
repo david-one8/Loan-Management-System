@@ -92,11 +92,11 @@ export default function PaymentHistoryTable({
 
       <div className="border border-gray-200 rounded-xl overflow-hidden">
         <Table<Payment>
-          columns={columns as TableColumn<Record<string, unknown>>[]}
-          data={payments as unknown as Record<string, unknown>[]}
+          columns={columns}
+          data={payments}
           isLoading={isLoading}
           emptyMessage="No payments recorded yet."
-          keyExtractor={(row) => (row as unknown as Payment)._id}
+          keyExtractor={(row) => row._id}
         />
       </div>
     </div>
