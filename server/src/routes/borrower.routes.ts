@@ -1,11 +1,19 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import path from 'path';
 import multer from 'multer';
-import { saveProfile, uploadSlip, applyLoan, getLoan } from '../controllers/borrower.controller';
+import {
+  saveProfile,
+  uploadSlip,
+  applyLoan,
+  getLoan,
+  getPaymentHistory,          // ← added
+} from '../controllers/borrower.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole }  from '../middleware/rbac.middleware';
 
+
 const router = Router();
+
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, 'uploads/'),
@@ -15,6 +23,7 @@ const storage = multer.diskStorage({
     cb(null, `slip_${suffix}${ext}`);
   },
 });
+
 
 const fileFilter = (
   _req: Request,
@@ -29,15 +38,19 @@ const fileFilter = (
   }
 };
 
+
 const upload = multer({
   storage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
 
+
 router.use(authenticate, requireRole('borrower'));
 
+
 router.post('/profile', saveProfile);
+
 
 // Inline multer error handler — returns JSON instead of default Express HTML
 router.post(
@@ -62,7 +75,10 @@ router.post(
   uploadSlip
 );
 
-router.post('/apply', applyLoan);
-router.get('/loan',   getLoan);
+
+router.post('/apply',                applyLoan);
+router.get('/loan',                  getLoan);
+router.get('/loan/:loanId/payments', getPaymentHistory);  // ← new route
+
 
 export default router;

@@ -5,6 +5,7 @@ import { Loan } from '../models/Loan.model';
 import { Payment } from '../models/Payment.model';
 import { runBRE } from '../services/bre.service';
 
+
 // POST /api/borrower/profile
 export const saveProfile = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -68,6 +69,7 @@ export const saveProfile = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+
 // POST /api/borrower/upload-slip
 export const uploadSlip = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -100,6 +102,7 @@ export const uploadSlip = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ success: false, message: 'Internal server error', errors: err });
   }
 };
+
 
 // POST /api/borrower/apply
 export const applyLoan = async (req: Request, res: Response): Promise<void> => {
@@ -178,16 +181,16 @@ export const applyLoan = async (req: Request, res: Response): Promise<void> => {
     const totalRepayment = numAmount + simpleInterest;
 
     const loan = await Loan.create({
-      borrowerId:        new mongoose.Types.ObjectId(userId),
-      profileId:         profile._id,
-      amount:            numAmount,
-      tenure:            numTenure,
-      interestRate:      R,
+      borrowerId:         new mongoose.Types.ObjectId(userId),
+      profileId:          profile._id,
+      amount:             numAmount,
+      tenure:             numTenure,
+      interestRate:       R,
       simpleInterest,
       totalRepayment,
-      totalPaid:         0,
+      totalPaid:          0,
       outstandingBalance: totalRepayment,
-      status:            'applied',
+      status:             'applied',
     });
 
     res.status(201).json({ success: true, loan });
@@ -195,6 +198,7 @@ export const applyLoan = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ success: false, message: 'Internal server error', errors: err });
   }
 };
+
 
 // GET /api/borrower/loan
 export const getLoan = async (req: Request, res: Response): Promise<void> => {
@@ -209,6 +213,28 @@ export const getLoan = async (req: Request, res: Response): Promise<void> => {
 
     const payments = await Payment.find({ loanId: loan._id }).sort({ paymentDate: -1 });
     res.status(200).json({ success: true, loan, payments });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Internal server error', errors: err });
+  }
+};
+
+
+// GET /api/borrower/loan/:loanId/payments
+export const getPaymentHistory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId     = req.user!._id;
+    const { loanId } = req.params;
+
+    // Verify the loan belongs to this borrower
+    const loan = await Loan.findOne({ _id: loanId, borrowerId: userId });
+    if (!loan) {
+      res.status(404).json({ success: false, message: 'Loan not found' });
+      return;
+    }
+
+    const payments = await Payment.find({ loanId: loan._id }).sort({ paymentDate: -1 });
+
+    res.status(200).json({ success: true, payments });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Internal server error', errors: err });
   }
