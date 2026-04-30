@@ -1,32 +1,33 @@
 import React from 'react';
 import type { TableColumn } from '@/types';
-import Spinner from './Spinner';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface TableProps<T extends Record<string, unknown>> {
+interface TableProps<T extends object> {
   columns: TableColumn<T>[];
   data: T[];
   isLoading?: boolean;
   emptyMessage?: string;
   emptyIcon?: React.ReactNode;
-  /** Number of skeleton rows to show while loading */
   skeletonRows?: number;
-  /** Key extractor — defaults to row._id or index */
   keyExtractor?: (row: T, index: number) => string | number;
 }
 
-// ─── Skeleton Row ─────────────────────────────────────────────────────────────
+function getValue(row: object, key: string): React.ReactNode {
+  return (row as Record<string, React.ReactNode>)[key];
+}
+
+function getDefaultKey(row: object, index: number): string | number {
+  return (row as { _id?: string | number })._id ?? index;
+}
 
 function SkeletonRow({ cols }: { cols: number }) {
   return (
     <tr className="border-b border-gray-100 last:border-0">
-      {Array.from({ length: cols }).map((_, i) => (
-        <td key={i} className="px-4 py-3">
+      {Array.from({ length: cols }).map((_, index) => (
+        <td key={index} className="px-4 py-3">
           <div
             className="h-4 rounded-md"
             style={{
-              width: `${55 + ((i * 37) % 45)}%`,
+              width: `${55 + ((index * 37) % 45)}%`,
               background:
                 'linear-gradient(90deg, #f3f4f6 25%, #e9eaeb 50%, #f3f4f6 75%)',
               backgroundSize: '200% 100%',
@@ -38,8 +39,6 @@ function SkeletonRow({ cols }: { cols: number }) {
     </tr>
   );
 }
-
-// ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EmptyState({
   message,
@@ -76,9 +75,7 @@ function EmptyState({
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-export default function Table<T extends Record<string, unknown>>({
+export default function Table<T extends object>({
   columns,
   data,
   isLoading = false,
@@ -88,66 +85,57 @@ export default function Table<T extends Record<string, unknown>>({
   keyExtractor,
 }: TableProps<T>) {
   function getKey(row: T, index: number): string | number {
-    if (keyExtractor) return keyExtractor(row, index);
-    return (row._id as string | number | undefined) ?? index;
+    return keyExtractor ? keyExtractor(row, index) : getDefaultKey(row, index);
   }
 
   return (
     <>
-      {/* Shimmer keyframe */}
       <style>{`
         @keyframes shimmer {
-          0%   { background-position: -200% 0; }
-          100% { background-position:  200% 0; }
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
         }
       `}</style>
 
-      {/* Outer wrapper: horizontal scroll on small screens */}
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          {/* Header */}
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              {columns.map((col) => (
+              {columns.map((column) => (
                 <th
-                  key={col.key}
+                  key={column.key}
                   scope="col"
                   className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
                 >
-                  {col.label}
+                  {column.label}
                 </th>
               ))}
             </tr>
           </thead>
 
-          {/* Body */}
           <tbody className="divide-y divide-gray-100 bg-white">
             {isLoading ? (
-              Array.from({ length: skeletonRows }).map((_, i) => (
-                <SkeletonRow key={i} cols={columns.length} />
+              Array.from({ length: skeletonRows }).map((_, index) => (
+                <SkeletonRow key={index} cols={columns.length} />
               ))
             ) : data.length === 0 ? (
-              <EmptyState
-                message={emptyMessage}
-                icon={emptyIcon}
-                cols={columns.length}
-              />
+              <EmptyState message={emptyMessage} icon={emptyIcon} cols={columns.length} />
             ) : (
-              data.map((row, index) => (
+              data.map((row, rowIndex) => (
                 <tr
-                  key={getKey(row, index)}
+                  key={getKey(row, rowIndex)}
                   className="hover:bg-gray-50 transition-colors duration-75"
                 >
-                  {columns.map((col) => (
+                  {columns.map((column) => (
                     <td
-                      key={col.key}
+                      key={column.key}
                       className="px-4 py-3 text-gray-700 whitespace-nowrap"
                     >
-                      {col.render
-                        ? col.render(row)
-                        : (row[col.key] as React.ReactNode) ?? (
-                            <span className="text-gray-400">—</span>
-                          )}
+                      {column.render ? (
+                        column.render(row)
+                      ) : (
+                        getValue(row, column.key) ?? <span className="text-gray-400">-</span>
+                      )}
                     </td>
                   ))}
                 </tr>

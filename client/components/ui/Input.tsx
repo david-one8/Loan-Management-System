@@ -2,7 +2,7 @@ import React from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   label?: string;
   name: string;
   error?: string;
