@@ -1,0 +1,111 @@
+import defaultTheme from 'tailwindcss/defaultTheme';
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          25: '#F5F8FF',
+          50: '#EFF4FF',
+          100: '#D1E0FF',
+          200: '#B2CCFF',
+          300: '#84ADFF',
+          400: '#528BFF',
+          500: '#2970FF',
+          600: '#155EEF',
+          700: '#004EEB',
+          800: '#0040C1',
+          900: '#00359E',
+          950: '#002266',
+        },
+        success: {
+          50: '#ECFDF3',
+          100: '#D1FADF',
+          200: '#A6F4C5',
+          500: '#12B76A',
+          600: '#039855',
+          700: '#027A48',
+          800: '#05603A',
+          900: '#054F31',
+          950: '#022C22',
+        },
+        warning: {
+          50: '#FFFAEB',
+          100: '#FEF0C7',
+          200: '#FEDF89',
+          500: '#F79009',
+          600: '#DC6803',
+          700: '#B54708',
+          800: '#93370D',
+          900: '#7A2E0E',
+        },
+        danger: {
+          50: '#FEF3F2',
+          100: '#FEE4E2',
+          200: '#FECDCA',
+          400: '#F97066',
+          500: '#F04438',
+          600: '#D92D20',
+          700: '#B42318',
+          800: '#912018',
+          900: '#7A271A',
+          950: '#55160C',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
+      },
+      borderRadius: {
+        '4xl': '2rem',
+      },
+      boxShadow: {
+        card: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        'card-md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        'card-lg': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+        glow: '0 0 0 4px rgb(37 99 235 / 0.15)',
+        'glow-sm': '0 0 0 3px rgb(37 99 235 / 0.1)',
+        'inner-card': 'inset 0 2px 4px 0 rgb(0 0 0 / 0.06)',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(circle, var(--tw-gradient-stops))',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.2s ease-out both',
+        'fade-up': 'fadeUp 0.3s ease-out both',
+        'fade-up-sm': 'fadeUpSm 0.2s ease-out both',
+        'slide-in-right': 'slideInRight 0.3s ease-out both',
+        'slide-in-left': 'slideInLeft 0.3s ease-out both',
+        'scale-in': 'scaleIn 0.2s ease-out both',
+        shimmer: 'shimmer 2s linear infinite',
+        'spin-slow': 'spin 3s linear infinite',
+        'bounce-sm': 'bounceSm 0.4s ease-out',
+        shake: 'shake 0.4s ease-out',
+        progress: 'progress 0.8s ease-out both',
+        'pulse-ring': 'pulseRing 2s ease-out infinite',
+        'toast-progress': 'toastProgress 4s linear forwards',
+      },
+      keyframes: {
+        fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
+        fadeUp: { from: { opacity: '0', transform: 'translateY(16px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        fadeUpSm: { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideInRight: { from: { opacity: '0', transform: 'translateX(24px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
+        slideInLeft: { from: { opacity: '0', transform: 'translateX(-24px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
+        scaleIn: { from: { opacity: '0', transform: 'scale(0.94)' }, to: { opacity: '1', transform: 'scale(1)' } },
+        shimmer: { from: { backgroundPosition: '-200% center' }, to: { backgroundPosition: '200% center' } },
+        bounceSm: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-4px)' } },
+        shake: { '0%,100%': { transform: 'translateX(0)' }, '20%,60%': { transform: 'translateX(-4px)' }, '40%,80%': { transform: 'translateX(4px)' } },
+        progress: { from: { width: '0' }, to: { width: 'var(--progress-width)' } },
+        pulseRing: { '0%': { transform: 'scale(1)', opacity: '1' }, '100%': { transform: 'scale(1.5)', opacity: '0' } },
+        toastProgress: { from: { width: '100%' }, to: { width: '0%' } },
+      },
+    },
+  },
+};
+
+export default config;
