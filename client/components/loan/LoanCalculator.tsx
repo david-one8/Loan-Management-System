@@ -1,13 +1,11 @@
 'use client';
 
-import React from 'react';
+import { Calculator, Info } from 'lucide-react';
 import {
   formatCurrency,
   calculateSI,
   calculateTotalRepayment,
 } from '@/lib/utils';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LoanCalculatorProps {
   amount: number;
@@ -15,14 +13,22 @@ interface LoanCalculatorProps {
   interestRate?: number;
 }
 
-interface CalcRow {
+function Stat({
+  label,
+  value,
+  className = 'text-slate-100',
+}: {
   label: string;
   value: string;
-  highlight?: boolean;
-  mono?: boolean;
+  className?: string;
+}) {
+  return (
+    <div>
+      <p className="mb-1 text-2xs font-mono uppercase text-slate-500">{label}</p>
+      <p className={`text-base font-bold font-mono tabular-nums ${className}`}>{value}</p>
+    </div>
+  );
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LoanCalculator({
   amount,
@@ -31,97 +37,38 @@ export default function LoanCalculator({
 }: LoanCalculatorProps) {
   const si = calculateSI(amount, tenure);
   const totalRepayment = calculateTotalRepayment(amount, tenure);
-  const progressPct = Math.min((si / totalRepayment) * 100, 100);
-
-  const rows: CalcRow[] = [
-    { label: 'Loan Amount',      value: formatCurrency(amount),        mono: true },
-    { label: 'Tenure',           value: `${tenure} day${tenure !== 1 ? 's' : ''}` },
-    { label: 'Interest Rate',    value: `${interestRate}% p.a.` },
-    { label: 'Simple Interest',  value: formatCurrency(Math.round(si)), mono: true },
-    {
-      label: 'Total Repayment',
-      value: formatCurrency(Math.round(totalRepayment)),
-      highlight: true,
-      mono: true,
-    },
-  ];
 
   return (
-    <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-3 bg-white border-b border-gray-200">
-        <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <svg
-            className="w-4 h-4 text-blue-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
-          Loan Summary
-        </p>
-      </div>
-
-      {/* Rows */}
-      <div className="divide-y divide-gray-200">
-        {rows.map((row) => (
-          <div
-            key={row.label}
-            className={[
-              'flex items-center justify-between px-5 py-3',
-              row.highlight ? 'bg-blue-50' : '',
-            ].join(' ')}
-          >
-            <span
-              className={[
-                'text-sm',
-                row.highlight ? 'font-semibold text-blue-700' : 'text-gray-600',
-              ].join(' ')}
-            >
-              {row.label}
-            </span>
-            <span
-              className={[
-                'text-sm',
-                row.mono ? 'font-mono' : '',
-                row.highlight
-                  ? 'font-bold text-blue-700 text-base'
-                  : 'font-medium text-gray-900',
-              ].join(' ')}
-            >
-              {row.value}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Interest breakdown bar */}
-      <div className="px-5 py-4 border-t border-gray-200 bg-white">
-        <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-          <span>Principal</span>
-          <span>Interest ({progressPct.toFixed(1)}%)</span>
+    <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-card dark:border-[#1e293b]">
+      <div className="flex items-center justify-between bg-slate-900 px-5 py-3 dark:bg-black">
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded-full bg-danger-500" />
+          <span className="h-3 w-3 rounded-full bg-warning-500" />
+          <span className="h-3 w-3 rounded-full bg-success-500" />
+          <span className="ml-2 text-xs font-mono text-slate-400">loan-summary.json</span>
         </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-          {/* Principal portion */}
-          <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-300"
-            style={{ width: `${100 - progressPct}%` }}
+        <Calculator className="h-4 w-4 text-slate-600" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 bg-[#0d1526] p-5 sm:grid-cols-2 dark:bg-black">
+        <Stat label="principal" value={formatCurrency(amount)} className="text-brand-400" />
+        <Stat label="tenure" value={`${tenure} days`} />
+        <Stat label="interest_rate" value={`${interestRate}% p.a.`} />
+        <Stat label="simple_interest" value={formatCurrency(Math.round(si))} className="text-warning-400" />
+        <div className="border-t border-white/10 pt-4 sm:col-span-2">
+          <Stat
+            label="total_repayment"
+            value={formatCurrency(Math.round(totalRepayment))}
+            className="text-xl text-success-400"
           />
         </div>
-        <div className="flex justify-between text-xs mt-1.5">
-          <span className="text-blue-600 font-mono font-medium">
-            {formatCurrency(amount)}
-          </span>
-          <span className="text-orange-500 font-mono font-medium">
-            +{formatCurrency(Math.round(si))}
-          </span>
-        </div>
+      </div>
+
+      <div className="flex items-center gap-2 bg-slate-800 px-5 py-2.5 dark:bg-[#0d1526]">
+        <Info className="h-3.5 w-3.5 text-brand-500" />
+        <p className="text-xs font-mono text-slate-500">
+          {`// Fixed rate: ${interestRate}% p.a. | Simple Interest`}
+        </p>
       </div>
     </div>
   );
