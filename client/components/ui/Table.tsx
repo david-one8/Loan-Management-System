@@ -1,3 +1,4 @@
+import { Inbox } from 'lucide-react';
 import React from 'react';
 import type { TableColumn } from '@/types';
 
@@ -21,18 +22,12 @@ function getDefaultKey(row: object, index: number): string | number {
 
 function SkeletonRow({ cols }: { cols: number }) {
   return (
-    <tr className="border-b border-gray-100 last:border-0">
+    <tr className="border-b border-slate-100 last:border-0 dark:border-[#1a2236]">
       {Array.from({ length: cols }).map((_, index) => (
-        <td key={index} className="px-4 py-3">
+        <td key={index} className="px-5 py-4 first:pl-6 last:pr-6">
           <div
-            className="h-4 rounded-md"
-            style={{
-              width: `${55 + ((index * 37) % 45)}%`,
-              background:
-                'linear-gradient(90deg, #f3f4f6 25%, #e9eaeb 50%, #f3f4f6 75%)',
-              backgroundSize: '200% 100%',
-              animation: 'shimmer 1.5s ease-in-out infinite',
-            }}
+            className="h-4 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] animate-shimmer dark:from-slate-800 dark:via-slate-700 dark:to-slate-800"
+            style={{ width: `${55 + ((index * 37) % 45)}%` }}
           />
         </td>
       ))}
@@ -52,23 +47,20 @@ function EmptyState({
   return (
     <tr>
       <td colSpan={cols}>
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center gap-3">
-          {icon ?? (
-            <svg
-              className="w-10 h-10 text-gray-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m4-4h8"
-              />
-            </svg>
-          )}
-          <p className="text-sm text-gray-500">{message}</p>
+        <div className="py-20 text-center">
+          <div className="mx-auto flex max-w-xs flex-col items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
+              {icon ?? <Inbox className="h-8 w-8 text-slate-300 dark:text-slate-600" />}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-400">
+                No records found
+              </p>
+              <p className="mt-1 text-xs text-slate-400 dark:text-slate-600">
+                {message}
+              </p>
+            </div>
+          </div>
         </div>
       </td>
     </tr>
@@ -89,23 +81,16 @@ export default function Table<T extends object>({
   }
 
   return (
-    <>
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-      `}</style>
-
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
+        <table className="w-full border-collapse text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+            <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  className="whitespace-nowrap px-5 py-3.5 text-left text-2xs font-semibold uppercase tracking-wider text-slate-500 first:pl-6 last:pr-6 dark:text-slate-500"
                 >
                   {column.label}
                 </th>
@@ -113,7 +98,7 @@ export default function Table<T extends object>({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100 bg-white">
+          <tbody>
             {isLoading ? (
               Array.from({ length: skeletonRows }).map((_, index) => (
                 <SkeletonRow key={index} cols={columns.length} />
@@ -124,17 +109,17 @@ export default function Table<T extends object>({
               data.map((row, rowIndex) => (
                 <tr
                   key={getKey(row, rowIndex)}
-                  className="hover:bg-gray-50 transition-colors duration-75"
+                  className="border-b border-slate-100 transition-colors duration-100 last:border-0 hover:bg-slate-50/50 dark:border-[#1a2236] dark:hover:bg-[#1a2236]/60"
                 >
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className="px-4 py-3 text-gray-700 whitespace-nowrap"
+                      className="whitespace-nowrap px-5 py-4 text-slate-700 first:pl-6 last:pr-6 dark:text-slate-300"
                     >
                       {column.render ? (
                         column.render(row)
                       ) : (
-                        getValue(row, column.key) ?? <span className="text-gray-400">-</span>
+                        getValue(row, column.key) ?? <span className="text-slate-400">-</span>
                       )}
                     </td>
                   ))}
@@ -144,6 +129,6 @@ export default function Table<T extends object>({
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 }
