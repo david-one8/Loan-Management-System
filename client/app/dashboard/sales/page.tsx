@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Search, Users } from 'lucide-react';
 import { get } from '@/lib/api';
 import type { Lead, PaginatedResponse, TableColumn } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import Table from '@/components/ui/Table';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
+import PageHeader from '@/components/ui/PageHeader';
 
 const PAGE_LIMIT = 10;
 
@@ -22,18 +23,18 @@ const columns: TableColumn<Lead>[] = [
   {
     key: 'email',
     label: 'Email',
-    render: (row) => <span className="text-sm font-medium text-gray-900">{row.email}</span>,
+    render: (row) => <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{row.email}</span>,
   },
   {
     key: 'fullName',
     label: 'Full Name',
-    render: (row) => <span className="text-sm text-gray-700">{row.profile?.fullName ?? '-'}</span>,
+    render: (row) => <span className="text-sm text-slate-700 dark:text-slate-300">{row.profile?.fullName ?? '-'}</span>,
   },
   {
     key: 'employmentMode',
     label: 'Employment Mode',
     render: (row) => (
-      <span className="text-sm text-gray-700 capitalize">
+      <span className="text-sm capitalize text-slate-700 dark:text-slate-300">
         {row.profile?.employmentMode?.replace('-', ' ') ?? '-'}
       </span>
     ),
@@ -42,7 +43,7 @@ const columns: TableColumn<Lead>[] = [
     key: 'monthlySalary',
     label: 'Monthly Salary',
     render: (row) => (
-      <span className="text-sm font-mono text-gray-800">
+      <span className="font-mono text-sm text-slate-800 dark:text-slate-200">
         {row.profile?.monthlySalary != null ? formatCurrency(row.profile.monthlySalary) : '-'}
       </span>
     ),
@@ -50,7 +51,7 @@ const columns: TableColumn<Lead>[] = [
   {
     key: 'createdAt',
     label: 'Registered On',
-    render: (row) => <span className="text-sm text-gray-500">{formatDate(row.createdAt)}</span>,
+    render: (row) => <span className="text-sm text-slate-500 dark:text-slate-400">{formatDate(row.createdAt)}</span>,
   },
   {
     key: 'profileStatus',
@@ -95,31 +96,32 @@ export default function SalesPage() {
   }, [fetchLeads, page]);
 
   return (
-    <div className="space-y-6 max-w-full">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Lead Tracker</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Borrowers who have not applied for a loan yet.
-          </p>
-        </div>
-        {!isLoading && total > 0 && (
-          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">
-            {total} lead{total !== 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
+    <div className="max-w-full space-y-6 animate-fade-up">
+      <PageHeader
+        title="Lead Tracker"
+        subtitle="Borrowers who have not applied for a loan yet."
+        icon={<Users className="h-6 w-6" />}
+      />
 
       {error && (
-        <div className="flex items-center justify-between gap-4 bg-red-50 border border-red-200 rounded-xl px-5 py-4">
-          <p className="text-sm text-red-700 font-medium">{error}</p>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-danger-200 bg-danger-50 px-5 py-4 dark:border-danger-500/20 dark:bg-danger-500/10">
+          <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{error}</p>
           <Button variant="secondary" size="sm" onClick={() => fetchLeads(page)}>
             Retry
           </Button>
         </div>
       )}
 
-      <Card noPadding>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-[#1e293b]">
+          <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+            {total} record{total !== 1 ? 's' : ''}
+          </span>
+          <div className="flex w-48 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm text-slate-400 dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+            <Search className="h-4 w-4" />
+            Search records...
+          </div>
+        </div>
         <Table<Lead>
           columns={columns}
           data={leads}
@@ -130,22 +132,22 @@ export default function SalesPage() {
         />
 
         {!isLoading && total > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 flex-wrap gap-3">
-            <p className="text-xs text-gray-500">
-              Showing {(page - 1) * PAGE_LIMIT + 1}-{Math.min(page * PAGE_LIMIT, total)} of {total}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 px-5 py-4 dark:border-[#1e293b]">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Showing {(page - 1) * PAGE_LIMIT + 1}-{Math.min(page * PAGE_LIMIT, total)} of {total} results
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
-                Previous
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-xs text-gray-600 font-medium px-2">{page} / {totalPages}</span>
+              <span className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-brand-600 px-3 text-sm font-semibold text-white">{page} / {totalPages}</span>
               <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
-                Next
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

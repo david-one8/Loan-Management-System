@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { CheckCircle2, Receipt, Search } from 'lucide-react';
 import { get, post } from '@/lib/api';
 import type {
   Loan,
@@ -15,6 +16,8 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Card from '@/components/ui/Card';
 import { useToast } from '@/components/ui/ToastProvider';
+import PageHeader from '@/components/ui/PageHeader';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 const PAGE_LIMIT = 10;
 
@@ -84,13 +87,11 @@ function MiniProgress({ paid, total }: { paid: number; total: number }) {
 
   return (
     <div className="min-w-40">
-      <div className="flex justify-between text-xs text-gray-500 mb-1">
+      <div className="mb-1 flex justify-between text-xs text-slate-500 dark:text-slate-400">
         <span>{pct.toFixed(1)}%</span>
         <span>{formatCurrency(paid)}</span>
       </div>
-      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div className="h-full bg-green-500 rounded-full" style={{ width: `${pct}%` }} />
-      </div>
+      <ProgressBar value={Number(pct.toFixed(1))} size="sm" variant={pct >= 100 ? 'success' : 'gradient'} />
     </div>
   );
 }
@@ -200,27 +201,27 @@ export default function CollectionPage() {
     {
       key: 'borrowerEmail',
       label: 'Borrower Email',
-      render: (row) => <span className="text-sm font-medium text-gray-900">{row.borrowerId?.email ?? '-'}</span>,
+      render: (row) => <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{row.borrowerId?.email ?? '-'}</span>,
     },
     {
       key: 'fullName',
       label: 'Full Name',
-      render: (row) => <span className="text-sm text-gray-700">{row.profileId?.fullName ?? '-'}</span>,
+      render: (row) => <span className="text-sm text-slate-700 dark:text-slate-300">{row.profileId?.fullName ?? '-'}</span>,
     },
     {
       key: 'totalRepayment',
       label: 'Total Repayment',
-      render: (row) => <span className="text-sm font-mono font-semibold">{formatCurrency(row.totalRepayment)}</span>,
+      render: (row) => <span className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(row.totalRepayment)}</span>,
     },
     {
       key: 'totalPaid',
       label: 'Total Paid',
-      render: (row) => <span className="text-sm font-mono text-green-700 font-semibold">{formatCurrency(row.totalPaid)}</span>,
+      render: (row) => <span className="font-mono text-sm font-semibold text-success-700 dark:text-success-400">{formatCurrency(row.totalPaid)}</span>,
     },
     {
       key: 'outstandingBalance',
       label: 'Outstanding',
-      render: (row) => <span className="text-sm font-mono text-red-600 font-semibold">{formatCurrency(row.outstandingBalance)}</span>,
+      render: (row) => <span className="font-mono text-sm font-semibold text-danger-600 dark:text-danger-400">{formatCurrency(row.outstandingBalance)}</span>,
     },
     {
       key: 'progress',
@@ -236,7 +237,7 @@ export default function CollectionPage() {
             Record Payment
           </Button>
         ) : (
-          <span className="text-xs font-medium text-green-700 bg-green-100 px-2.5 py-1 rounded-full border border-green-200">
+          <span className="rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700 dark:border-success-500/20 dark:bg-success-500/10 dark:text-success-400">
             Closed
           </span>
         ),
@@ -244,24 +245,16 @@ export default function CollectionPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-full">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Collection</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Track repayments and record incoming payments for disbursed loans.
-          </p>
-        </div>
-        {!isLoading && total > 0 && (
-          <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium border border-green-200">
-            {total} active loan{total !== 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
+    <div className="max-w-full space-y-6 animate-fade-up">
+      <PageHeader
+        title="Collection"
+        subtitle="Track repayments and record incoming payments for disbursed loans."
+        icon={<Receipt className="h-6 w-6" />}
+      />
 
       {fetchError && (
-        <div className="flex items-center justify-between gap-4 bg-red-50 border border-red-200 rounded-xl px-5 py-4">
-          <p className="text-sm text-red-700 font-medium">{fetchError}</p>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-danger-200 bg-danger-50 px-5 py-4 dark:border-danger-500/20 dark:bg-danger-500/10">
+          <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{fetchError}</p>
           <Button variant="secondary" size="sm" onClick={() => fetchLoans(page)}>
             Retry
           </Button>
@@ -269,6 +262,15 @@ export default function CollectionPage() {
       )}
 
       <Card noPadding>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-[#1e293b]">
+          <span className="rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700 dark:border-success-500/20 dark:bg-success-500/10 dark:text-success-400">
+            {total} active loan{total !== 1 ? 's' : ''}
+          </span>
+          <div className="flex w-48 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm text-slate-400 dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+            <Search className="h-4 w-4" />
+            Search records...
+          </div>
+        </div>
         <Table<LoanRow>
           columns={columns}
           data={loans}
@@ -279,15 +281,15 @@ export default function CollectionPage() {
         />
 
         {!isLoading && total > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 flex-wrap gap-3">
-            <p className="text-xs text-gray-500">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4 dark:border-[#1e293b]">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Showing {(page - 1) * PAGE_LIMIT + 1}-{Math.min(page * PAGE_LIMIT, total)} of {total}
             </p>
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
                 Previous
               </Button>
-              <span className="text-xs text-gray-600 font-medium px-2">{page} / {totalPages}</span>
+              <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400">{page} / {totalPages}</span>
               <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
                 Next
               </Button>
@@ -299,62 +301,69 @@ export default function CollectionPage() {
       <Modal isOpen={modal.isOpen} onClose={closeModal} title="Record Payment" maxWidth="max-w-lg">
         {modal.loan && (
           <div className="space-y-5">
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 text-sm">
+            <div className="flex items-center justify-between rounded-xl border border-brand-100 bg-brand-50 p-4 dark:border-brand-900 dark:bg-brand-950/50">
+              <span className="text-sm font-medium text-brand-700 dark:text-brand-400">Outstanding balance</span>
+              <span className="font-mono text-2xl font-bold tabular-nums text-brand-600 dark:text-brand-400">{formatCurrency(modal.loan.outstandingBalance)}</span>
+            </div>
+            <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-[#1e293b] dark:bg-[#0A0F1E]">
               <div className="flex justify-between">
-                <span className="text-gray-500">Borrower</span>
-                <span className="font-medium text-gray-900">{modal.loan.profileId?.fullName ?? modal.loan.borrowerId?.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Outstanding</span>
-                <span className="font-mono font-bold text-red-600">{formatCurrency(modal.loan.outstandingBalance)}</span>
+                <span className="text-slate-500 dark:text-slate-400">Borrower</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{modal.loan.profileId?.fullName ?? modal.loan.borrowerId?.email}</span>
               </div>
               <MiniProgress paid={modal.loan.totalPaid} total={modal.loan.totalRepayment} />
             </div>
 
+            {Number(modal.form.amount) === modal.loan.outstandingBalance && (
+              <div className="flex animate-fade-up items-center gap-3 rounded-xl border border-success-200 bg-success-50 p-3 dark:border-success-500/20 dark:bg-success-500/10">
+                <CheckCircle2 className="h-5 w-5 text-success-600 dark:text-success-400" />
+                <span className="text-sm font-medium text-success-700 dark:text-success-400">This payment will close the loan</span>
+              </div>
+            )}
+
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="utrNumber">UTR Number</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="utrNumber">UTR Number</label>
               <input
                 id="utrNumber"
                 value={modal.form.utrNumber}
                 onChange={(e) => handleFormChange('utrNumber', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-[#1e293b] dark:bg-[#0d1526] dark:text-slate-100"
                 disabled={modal.isSubmitting}
               />
-              {modal.errors.utrNumber && <p className="text-xs text-red-600">{modal.errors.utrNumber}</p>}
+              {modal.errors.utrNumber && <p className="text-xs text-danger-600 dark:text-danger-400">{modal.errors.utrNumber}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="amount">Amount</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="amount">Amount</label>
               <input
                 id="amount"
                 type="number"
                 value={modal.form.amount}
                 onChange={(e) => handleFormChange('amount', e.target.value)}
                 max={modal.loan.outstandingBalance}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-[#1e293b] dark:bg-[#0d1526] dark:text-slate-100"
                 disabled={modal.isSubmitting}
               />
-              <p className="text-xs text-gray-500">Outstanding balance: {formatCurrency(modal.loan.outstandingBalance)}</p>
-              {modal.errors.amount && <p className="text-xs text-red-600">{modal.errors.amount}</p>}
+              <p className="text-xs text-slate-500 dark:text-slate-400">Outstanding balance: {formatCurrency(modal.loan.outstandingBalance)}</p>
+              {modal.errors.amount && <p className="text-xs text-danger-600 dark:text-danger-400">{modal.errors.amount}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="paymentDate">Payment Date</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="paymentDate">Payment Date</label>
               <input
                 id="paymentDate"
                 type="date"
                 value={modal.form.paymentDate}
                 onChange={(e) => handleFormChange('paymentDate', e.target.value)}
                 max={todayStr()}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-[#1e293b] dark:bg-[#0d1526] dark:text-slate-100"
                 disabled={modal.isSubmitting}
               />
-              {modal.errors.paymentDate && <p className="text-xs text-red-600">{modal.errors.paymentDate}</p>}
+              {modal.errors.paymentDate && <p className="text-xs text-danger-600 dark:text-danger-400">{modal.errors.paymentDate}</p>}
             </div>
 
             {modal.apiError && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                <p className="text-sm text-red-700 font-medium">{modal.apiError}</p>
+              <div className="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 dark:border-danger-500/20 dark:bg-danger-500/10">
+                <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{modal.apiError}</p>
               </div>
             )}
 

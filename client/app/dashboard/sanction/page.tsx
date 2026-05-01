@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { AlertTriangle, ClipboardCheck, Search } from 'lucide-react';
 import { get, patch } from '@/lib/api';
 import type { Loan, PaginatedResponse, SanctionActionPayload, TableColumn } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -9,6 +10,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Card from '@/components/ui/Card';
+import PageHeader from '@/components/ui/PageHeader';
 import { useToast } from '@/components/ui/ToastProvider';
 
 const PAGE_LIMIT = 10;
@@ -112,27 +114,27 @@ export default function SanctionPage() {
     {
       key: 'borrowerEmail',
       label: 'Borrower Email',
-      render: (row) => <span className="text-sm font-medium text-gray-900">{row.borrowerId?.email ?? '-'}</span>,
+      render: (row) => <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{row.borrowerId?.email ?? '-'}</span>,
     },
     {
       key: 'fullName',
       label: 'Full Name',
-      render: (row) => <span className="text-sm text-gray-700">{row.profileId?.fullName ?? '-'}</span>,
+      render: (row) => <span className="text-sm text-slate-700 dark:text-slate-300">{row.profileId?.fullName ?? '-'}</span>,
     },
     {
       key: 'pan',
       label: 'PAN',
-      render: (row) => <span className="text-sm font-mono text-gray-700">{row.profileId?.pan ?? '-'}</span>,
+      render: (row) => <span className="font-mono text-sm text-slate-700 dark:text-slate-300">{row.profileId?.pan ?? '-'}</span>,
     },
     {
       key: 'amount',
       label: 'Loan Amount',
-      render: (row) => <span className="text-sm font-mono font-semibold">{formatCurrency(row.amount)}</span>,
+      render: (row) => <span className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(row.amount)}</span>,
     },
     {
       key: 'createdAt',
       label: 'Applied On',
-      render: (row) => <span className="text-sm text-gray-500">{formatDate(row.createdAt)}</span>,
+      render: (row) => <span className="text-sm text-slate-500 dark:text-slate-400">{formatDate(row.createdAt)}</span>,
     },
     {
       key: 'status',
@@ -156,22 +158,16 @@ export default function SanctionPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-full">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Sanction</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Review and approve or reject loan applications.</p>
-        </div>
-        {!isLoading && total > 0 && (
-          <span className="text-sm text-gray-500 bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium border border-blue-200">
-            {total} pending
-          </span>
-        )}
-      </div>
+    <div className="max-w-full space-y-6 animate-fade-up">
+      <PageHeader
+        title="Sanction"
+        subtitle="Review and approve or reject loan applications."
+        icon={<ClipboardCheck className="h-6 w-6" />}
+      />
 
       {fetchError && (
-        <div className="flex items-center justify-between gap-4 bg-red-50 border border-red-200 rounded-xl px-5 py-4">
-          <p className="text-sm text-red-700 font-medium">{fetchError}</p>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-danger-200 bg-danger-50 px-5 py-4 dark:border-danger-500/20 dark:bg-danger-500/10">
+          <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{fetchError}</p>
           <Button variant="secondary" size="sm" onClick={() => fetchLoans(page)}>
             Retry
           </Button>
@@ -179,6 +175,15 @@ export default function SanctionPage() {
       )}
 
       <Card noPadding>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-[#1e293b]">
+          <span className="rounded-full border border-warning-200 bg-warning-50 px-2.5 py-1 text-xs font-medium text-warning-700 dark:border-warning-500/20 dark:bg-warning-500/10 dark:text-warning-400">
+            {total} pending
+          </span>
+          <div className="flex w-48 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm text-slate-400 dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+            <Search className="h-4 w-4" />
+            Search records...
+          </div>
+        </div>
         <Table<LoanRow>
           columns={columns}
           data={loans}
@@ -189,15 +194,15 @@ export default function SanctionPage() {
         />
 
         {!isLoading && total > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 flex-wrap gap-3">
-            <p className="text-xs text-gray-500">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4 dark:border-[#1e293b]">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Showing {(page - 1) * PAGE_LIMIT + 1}-{Math.min(page * PAGE_LIMIT, total)} of {total}
             </p>
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
                 Previous
               </Button>
-              <span className="text-xs text-gray-600 font-medium px-2">{page} / {totalPages}</span>
+              <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400">{page} / {totalPages}</span>
               <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
                 Next
               </Button>
@@ -214,22 +219,24 @@ export default function SanctionPage() {
       >
         {modal.loan && (
           <div className="space-y-5">
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 text-sm">
-              <div><span className="text-gray-500">Borrower: </span><span className="font-medium">{modal.loan.profileId?.fullName ?? modal.loan.borrowerId?.email}</span></div>
-              <div><span className="text-gray-500">Amount: </span><span className="font-mono font-semibold">{formatCurrency(modal.loan.amount)}</span></div>
-              <div><span className="text-gray-500">Total Repayable: </span><span className="font-mono font-semibold">{formatCurrency(modal.loan.totalRepayment)}</span></div>
+            <div className="rounded-xl border border-success-100 bg-success-50 p-4 text-sm dark:border-success-500/20 dark:bg-success-500/10">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-xs text-success-700 dark:text-success-400">Borrower<br /><span className="font-medium">{modal.loan.profileId?.fullName ?? modal.loan.borrowerId?.email}</span></div>
+                <div className="text-xs text-success-700 dark:text-success-400">Amount<br /><span className="font-mono font-semibold">{formatCurrency(modal.loan.amount)}</span></div>
+                <div className="text-xs text-success-700 dark:text-success-400">Tenure<br /><span className="font-mono font-semibold">{modal.loan.tenure} days</span></div>
+              </div>
             </div>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-gray-700">Sanction remark</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Sanction remark</span>
               <textarea
                 value={modal.remark}
                 onChange={(e) => setModal((prev) => ({ ...prev, remark: e.target.value }))}
-                className="w-full min-h-24 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="min-h-24 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-[#1e293b] dark:bg-[#0d1526] dark:text-slate-100"
                 placeholder="Optional remark"
                 disabled={modal.isSubmitting}
               />
             </label>
-            {modal.error && <p className="text-sm text-red-600 font-medium">{modal.error}</p>}
+            {modal.error && <p className="text-sm font-medium text-danger-600 dark:text-danger-400">{modal.error}</p>}
             <div className="flex items-center justify-end gap-3">
               <Button variant="secondary" onClick={closeModal} disabled={modal.isSubmitting}>Cancel</Button>
               <Button variant="primary" onClick={handleAction} isLoading={modal.isSubmitting} disabled={modal.isSubmitting}>Approve</Button>
@@ -246,21 +253,21 @@ export default function SanctionPage() {
       >
         {modal.loan && (
           <div className="space-y-5">
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2 text-sm">
-              <div><span className="text-gray-500">Borrower: </span><span className="font-medium">{modal.loan.profileId?.fullName ?? modal.loan.borrowerId?.email}</span></div>
-              <div><span className="text-gray-500">Amount: </span><span className="font-mono font-semibold">{formatCurrency(modal.loan.amount)}</span></div>
+            <div className="flex items-center gap-2 rounded-xl border border-danger-100 bg-danger-50 p-3 text-sm text-danger-700 dark:border-danger-500/20 dark:bg-danger-500/10 dark:text-danger-400">
+              <AlertTriangle className="h-5 w-5" />
+              This action cannot be undone
             </div>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-gray-700">Rejection reason</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Rejection reason</span>
               <textarea
                 value={modal.reason}
                 onChange={(e) => setModal((prev) => ({ ...prev, reason: e.target.value, error: '' }))}
-                className="w-full min-h-28 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="min-h-28 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-danger-500/20 dark:border-[#1e293b] dark:bg-[#0d1526] dark:text-slate-100"
                 placeholder="Provide a clear reason for rejection."
                 disabled={modal.isSubmitting}
               />
             </label>
-            {modal.error && <p className="text-sm text-red-600 font-medium">{modal.error}</p>}
+            {modal.error && <p className="text-sm font-medium text-danger-600 dark:text-danger-400">{modal.error}</p>}
             <div className="flex items-center justify-end gap-3">
               <Button variant="secondary" onClick={closeModal} disabled={modal.isSubmitting}>Cancel</Button>
               <Button variant="danger" onClick={handleAction} isLoading={modal.isSubmitting} disabled={modal.isSubmitting}>Reject</Button>
