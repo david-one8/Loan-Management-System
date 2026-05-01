@@ -1,70 +1,49 @@
-import React from 'react';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { Loader2 } from 'lucide-react';
 
 type SpinnerSize = 'sm' | 'md' | 'lg';
 
 interface SpinnerProps {
   size?: SpinnerSize;
-  /** Tailwind color class, e.g. "text-blue-600" */
   color?: string;
   label?: string;
 }
 
-// ─── Size Map ─────────────────────────────────────────────────────────────────
-
-const sizeMap: Record<SpinnerSize, { svg: string; border: string }> = {
-  sm: { svg: 'w-4 h-4', border: 'border-2' },
-  md: { svg: 'w-6 h-6', border: 'border-2' },
-  lg: { svg: 'w-10 h-10', border: 'border-[3px]' },
+const sizeMap: Record<SpinnerSize, string> = {
+  sm: 'h-4 w-4',
+  md: 'h-6 w-6',
+  lg: 'h-10 w-10',
 };
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Spinner({
   size = 'md',
-  color = 'text-blue-600',
-  label = 'Loading…',
+  color = 'text-brand-600 dark:text-brand-400',
+  label = 'Loading...',
 }: SpinnerProps) {
-  const { svg, border } = sizeMap[size];
-
   return (
-    <span
-      role="status"
-      aria-label={label}
-      className={`inline-block ${svg} ${color} animate-spin-slow`}
-    >
-      <span
-        className={[
-          'block w-full h-full rounded-full',
-          border,
-          'border-current border-t-transparent',
-        ].join(' ')}
-      />
+    <span role="status" aria-label={label} className="inline-flex items-center justify-center">
+      <Loader2 className={`${sizeMap[size]} ${color} animate-spin`} />
       <span className="sr-only">{label}</span>
     </span>
   );
 }
 
-// ─── Full-page centered spinner ───────────────────────────────────────────────
-
 export function PageSpinner() {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <Spinner size="lg" />
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+      <Loader2 className="h-8 w-8 animate-spin-slow text-brand-600 dark:text-brand-400" />
+      <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
     </div>
   );
 }
 
-// ─── Overlay spinner for card-level loading ───────────────────────────────────
-
 export function OverlaySpinner() {
   return (
     <div
-      className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[2px] rounded-xl"
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/80 backdrop-blur-sm dark:bg-slate-950/80"
       aria-busy="true"
     >
-      <Spinner size="lg" />
+      <Loader2 className="h-8 w-8 animate-spin-slow text-brand-600 dark:text-brand-400" />
+      <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
     </div>
   );
 }
