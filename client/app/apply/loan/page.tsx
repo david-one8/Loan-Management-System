@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertCircle, ArrowRight, BadgeCheck, SlidersHorizontal } from 'lucide-react';
 import { get, post } from '@/lib/api';
 import type {
   BorrowerLoanResponse,
@@ -102,26 +103,34 @@ export default function LoanPage() {
   const totalRepayment = calculateTotalRepayment(amount, tenure);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Loan Application</h1>
-        <p className="text-sm text-gray-500 mt-1">
+    <div className="space-y-6 animate-fade-up">
+      <div className="mb-6 flex items-start gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-brand-100 bg-brand-50 dark:border-brand-900 dark:bg-brand-950/50">
+          <SlidersHorizontal className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50">Loan Application</h1>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
           Configure your loan amount and tenure. The summary updates in real time.
-        </p>
+          </p>
+        </div>
       </div>
 
       {profile && (
-        <div className="flex flex-wrap items-center gap-4 bg-green-50 border border-green-200 rounded-xl px-5 py-3">
-          <span className="text-sm font-medium text-green-800">BRE Passed</span>
-          <span className="text-sm text-green-700 font-medium">{profile.fullName}</span>
-          <span className="text-sm text-green-700">
+        <div className="flex flex-wrap items-center gap-4 rounded-xl border border-success-200 bg-success-50 px-5 py-3 dark:border-success-500/20 dark:bg-success-500/10">
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-success-800 dark:text-success-300">
+            <BadgeCheck className="h-4 w-4" />
+            BRE Passed
+          </span>
+          <span className="text-sm font-medium text-success-700 dark:text-success-400">{profile.fullName}</span>
+          <span className="text-sm text-success-700 dark:text-success-400">
             Salary: <span className="font-semibold">{formatCurrency(profile.monthlySalary)}</span>
           </span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-card p-6 space-y-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="space-y-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-[#1e293b] dark:bg-[#111827] lg:col-span-3">
           <Slider
             label="Loan Amount"
             value={amount}
@@ -143,8 +152,9 @@ export default function LoanPage() {
           />
 
           {apiError && (
-            <div role="alert" className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-sm text-red-700 font-medium">{apiError}</p>
+            <div role="alert" className="flex items-center gap-3 rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 dark:border-danger-500/20 dark:bg-danger-500/10">
+              <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400" />
+              <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{apiError}</p>
             </div>
           )}
 
@@ -156,24 +166,25 @@ export default function LoanPage() {
             isLoading={isApplying}
             disabled={isApplying}
           >
-            {isApplying ? 'Submitting...' : 'Submit Loan Application'}
+            <span>Apply for {formatCurrency(amount)} Loan</span>
+            <ArrowRight className="ml-1 h-5 w-5" />
           </Button>
         </div>
 
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4 lg:col-span-2">
           <LoanCalculator amount={amount} tenure={tenure} />
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">
+          <div className="rounded-xl border border-brand-100 bg-brand-50 p-4 dark:border-brand-900 dark:bg-brand-950/40">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-400">
               Repayment Snapshot
             </p>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-blue-700">Interest</span>
-                <span className="font-mono font-semibold">{formatCurrency(Math.round(simpleInterest))}</span>
+                <span className="text-brand-700 dark:text-brand-400">Interest</span>
+                <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(Math.round(simpleInterest))}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-blue-700">Total</span>
-                <span className="font-mono font-bold">{formatCurrency(Math.round(totalRepayment))}</span>
+                <span className="text-brand-700 dark:text-brand-400">Total</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">{formatCurrency(Math.round(totalRepayment))}</span>
               </div>
             </div>
           </div>

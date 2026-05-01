@@ -2,6 +2,14 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  AlertCircle,
+  Check,
+  FileText,
+  Image as ImageIcon,
+  UploadCloud,
+  X,
+} from 'lucide-react';
 import { get, postForm } from '@/lib/api';
 import { formatCurrency, formatFileSize } from '@/lib/utils';
 import type { BorrowerProfile, ProfileResponse, UploadSlipResponse } from '@/types';
@@ -155,33 +163,38 @@ export default function UploadPage() {
   if (isPageLoading) return <PageSpinner />;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Salary Slip Upload</h1>
-        <p className="text-sm text-gray-500 mt-1">
+    <div className="space-y-6 animate-fade-up">
+      <div className="mb-6 flex items-start gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-brand-100 bg-brand-50 dark:border-brand-900 dark:bg-brand-950/50">
+          <UploadCloud className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50">Salary Slip Upload</h1>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
           Upload your latest salary slip for income verification.
-        </p>
+          </p>
+        </div>
       </div>
 
       {profile && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-5">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-600">
             Your Profile
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <p className="text-xs text-gray-500">Full Name</p>
-              <p className="text-sm font-semibold text-gray-900 mt-0.5">{profile.fullName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Full Name</p>
+              <p className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-slate-100">{profile.fullName}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">PAN Number</p>
-              <p className="text-sm font-mono font-semibold text-gray-900 mt-0.5 tracking-wider">
+              <p className="text-xs text-slate-500 dark:text-slate-400">PAN Number</p>
+              <p className="mt-0.5 text-sm font-semibold tracking-wider text-slate-900 font-mono dark:text-slate-100">
                 {profile.pan}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Monthly Salary</p>
-              <p className="text-sm font-semibold text-green-700 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400">Monthly Salary</p>
+              <p className="mt-0.5 text-sm font-semibold text-success-700 dark:text-success-400">
                 {formatCurrency(profile.monthlySalary)}
               </p>
             </div>
@@ -189,19 +202,19 @@ export default function UploadPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-6 sm:p-8 space-y-5">
+      <div className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
         {profile?.salarySlipUrl && !selectedFile && (
-          <div className="flex items-center justify-between gap-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-success-200 bg-success-50 px-4 py-3 dark:border-success-500/20 dark:bg-success-500/10">
             <div>
-              <p className="text-sm font-medium text-green-800">Salary slip already uploaded</p>
+              <p className="text-sm font-medium text-success-800 dark:text-success-300">Salary slip already uploaded</p>
               {profile.salarySlipFileName && (
-                <p className="text-xs text-green-600 font-mono mt-0.5">{profile.salarySlipFileName}</p>
+                <p className="mt-0.5 text-xs text-success-600 font-mono dark:text-success-400">{profile.salarySlipFileName}</p>
               )}
             </div>
             <button
               type="button"
               onClick={handleReUpload}
-              className="text-xs text-green-700 hover:text-green-900 font-medium underline underline-offset-2 shrink-0"
+              className="shrink-0 text-xs font-medium text-success-700 underline underline-offset-2 hover:text-success-900 dark:text-success-400"
             >
               Replace
             </button>
@@ -215,13 +228,13 @@ export default function UploadPage() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             className={[
-              'border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-4',
-              'cursor-pointer transition-colors duration-150',
+              'group rounded-2xl border-2 border-dashed p-10 text-center',
+              'cursor-pointer transition-all duration-200',
               isDragging
-                ? 'border-blue-400 bg-blue-50'
+                ? 'border-brand-400 bg-brand-50/30 dark:border-brand-500 dark:bg-brand-950/20'
                 : selectedFile
-                  ? 'border-gray-300 bg-gray-50'
-                  : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50',
+                  ? 'border-slate-300 bg-slate-50 dark:border-[#1e293b] dark:bg-[#0A0F1E]'
+                  : 'border-slate-300 bg-slate-50 hover:border-brand-400 hover:bg-brand-50/30 dark:border-[#1e293b] dark:bg-[#0A0F1E] dark:hover:border-brand-500 dark:hover:bg-brand-950/20',
             ].join(' ')}
           >
             <input
@@ -234,52 +247,78 @@ export default function UploadPage() {
             />
 
             {selectedFile ? (
-              <div className="flex flex-col items-center gap-2 text-center">
-                <p className="text-sm font-semibold text-gray-900 break-all max-w-xs">
-                  {selectedFile.name}
-                </p>
-                <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
-                <p className="text-xs text-blue-500">Click to change file</p>
+              <div className="flex w-full animate-fade-up items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-left dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedFile.type === 'application/pdf' ? 'bg-danger-50 text-danger-600 dark:bg-danger-500/10' : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10'}`}>
+                  {selectedFile.type === 'application/pdf' ? <FileText className="h-5 w-5" /> : <ImageIcon className="h-5 w-5" />}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{selectedFile.name}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-600">{formatFileSize(selectedFile.size)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReUpload();
+                  }}
+                  className="ml-auto rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-800"
+                  aria-label="Remove selected file"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3 text-center">
-                <p className="text-sm font-medium text-gray-700">
-                  <span className="text-blue-600">Click to browse</span> or drag and drop
-                </p>
-                <p className="text-xs text-gray-400">PDF, JPG or PNG. Max 5 MB</p>
+              <div>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-card transition-colors group-hover:border-brand-300 dark:border-[#1e293b] dark:bg-[#111827]">
+                  <UploadCloud className="h-7 w-7 text-slate-400 transition-colors group-hover:text-brand-500 group-hover:animate-bounce-sm dark:text-slate-600" />
+                </div>
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Drop your salary slip here</p>
+                <p className="mt-1 text-sm text-slate-400 dark:text-slate-600">or click to browse files</p>
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-400 dark:border-[#1e293b] dark:bg-[#111827]">
+                  <FileText className="h-3.5 w-3.5" />
+                  PDF, JPG, PNG - Max 5MB
+                </div>
               </div>
             )}
           </div>
         )}
 
         {fileError && (
-          <div role="alert" className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-red-700">{fileError}</p>
+          <div role="alert" className="flex items-center gap-3 rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 dark:border-danger-500/20 dark:bg-danger-500/10">
+            <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400" />
+            <p className="text-sm text-danger-700 dark:text-danger-400">{fileError}</p>
           </div>
         )}
 
         {apiError && (
-          <div role="alert" className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            <p className="text-sm text-red-700 font-medium">{apiError}</p>
+          <div role="alert" className="flex items-center gap-3 rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 dark:border-danger-500/20 dark:bg-danger-500/10">
+            <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400" />
+            <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{apiError}</p>
           </div>
         )}
 
         {uploadSuccess && (
-          <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-            <p className="text-sm font-medium text-green-800">
-              {selectedFile ? `"${selectedFile.name}" uploaded successfully.` : 'Salary slip verified.'}
-            </p>
+          <div className="flex animate-scale-in items-center gap-4 rounded-2xl border border-success-200 bg-success-50 p-5 dark:border-success-500/20 dark:bg-success-500/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success-500">
+              <Check className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-success-800 dark:text-success-300">Uploaded successfully</p>
+              <p className="text-sm text-success-600 dark:text-success-400">
+                {selectedFile ? selectedFile.name : profile?.salarySlipFileName ?? 'Salary slip verified.'}
+              </p>
+            </div>
             <button
               type="button"
               onClick={handleReUpload}
-              className="ml-auto text-xs text-green-700 hover:text-green-900 font-medium underline underline-offset-2 shrink-0"
+              className="ml-auto shrink-0 text-xs font-medium text-success-700 underline underline-offset-2 hover:text-success-900 dark:text-success-400"
             >
               Re-upload
             </button>
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row">
           {selectedFile && !uploadSuccess && (
             <Button
               variant="primary"
@@ -305,7 +344,7 @@ export default function UploadPage() {
         </div>
 
         {!uploadSuccess && (
-          <p className="text-xs text-center text-gray-400">
+          <p className="text-center text-xs text-slate-400 dark:text-slate-600">
             You must upload your salary slip before proceeding.
           </p>
         )}

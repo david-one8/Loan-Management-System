@@ -2,6 +2,16 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  Briefcase,
+  Building2,
+  Info,
+  UserCircle,
+  UserX,
+} from 'lucide-react';
 import { ApiError, get, post } from '@/lib/api';
 import { calculateAge } from '@/lib/utils';
 import type {
@@ -36,10 +46,11 @@ const EMPLOYMENT_OPTIONS: Array<{
   value: ProfilePayload['employmentMode'];
   label: string;
   description: string;
+  icon: React.ReactNode;
 }> = [
-  { value: 'salaried', label: 'Salaried', description: 'Employed with fixed income' },
-  { value: 'self-employed', label: 'Self-Employed', description: 'Business or freelance income' },
-  { value: 'unemployed', label: 'Unemployed', description: 'Currently not employed' },
+  { value: 'salaried', label: 'Salaried', description: 'Employed with fixed income', icon: <Briefcase className="h-8 w-8" /> },
+  { value: 'self-employed', label: 'Self-Employed', description: 'Business or freelance income', icon: <Building2 className="h-8 w-8" /> },
+  { value: 'unemployed', label: 'Unemployed', description: 'Currently not employed', icon: <UserX className="h-8 w-8" /> },
 ];
 
 function validate(form: FormState): FormErrors {
@@ -212,38 +223,46 @@ export default function PersonalPage() {
   const maxDobStr = maxDob.toISOString().split('T')[0];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Personal Details</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Tell us about yourself so we can check your eligibility.
-        </p>
+    <div className="space-y-6 animate-fade-up">
+      <div className="mb-6 flex items-start gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-brand-100 bg-brand-50 dark:border-brand-900 dark:bg-brand-950/50">
+          <UserCircle className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50">Personal Details</h1>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+            Tell us about yourself so we can check your eligibility.
+          </p>
+        </div>
       </div>
 
       {breError && (
-        <div role="alert" className="flex items-start gap-4 bg-red-50 border border-red-200 rounded-xl p-5">
+        <div role="alert" className="mb-6 flex animate-shake items-start gap-3 rounded-2xl border border-danger-200 bg-danger-50 p-4 dark:border-danger-500/20 dark:bg-danger-500/10">
+          <AlertTriangle className="mt-0.5 h-5 w-5 text-danger-600 dark:text-danger-400" />
           <div>
-            <p className="text-sm font-bold text-red-800">You are not eligible for a loan</p>
-            <p className="text-sm text-red-700 mt-1 leading-relaxed">{breError}</p>
+            <p className="text-sm font-semibold text-danger-800 dark:text-danger-300">Not Eligible</p>
+            <p className="mt-0.5 text-sm leading-relaxed text-danger-700 dark:text-danger-400">{breError}</p>
           </div>
         </div>
       )}
 
       {existingProfile && !breError && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-          <p className="text-sm text-blue-700">
+        <div className="flex items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 dark:border-brand-900 dark:bg-brand-950/40">
+          <Info className="mt-0.5 h-4 w-4 text-brand-600 dark:text-brand-400" />
+          <p className="text-sm text-brand-700 dark:text-brand-300">
             Your existing profile has been loaded. You can update and resubmit.
           </p>
         </div>
       )}
 
       {apiError && (
-        <div role="alert" className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          <p className="text-sm text-red-700 font-medium">{apiError}</p>
+        <div role="alert" className="flex items-center gap-3 rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 dark:border-danger-500/20 dark:bg-danger-500/10">
+          <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400" />
+          <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{apiError}</p>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-6 sm:p-8">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <Input
             label="Full Name"
@@ -257,6 +276,8 @@ export default function PersonalPage() {
             disabled={isSubmitting}
             autoComplete="name"
           />
+
+          <div className="border-t border-slate-100 dark:border-[#1e293b]" />
 
           <Input
             label="PAN Number"
@@ -272,6 +293,8 @@ export default function PersonalPage() {
             hint="Format: 5 letters, 4 digits, 1 letter"
             className="font-mono uppercase tracking-widest"
           />
+
+          <div className="border-t border-slate-100 dark:border-[#1e293b]" />
 
           <Input
             label="Date of Birth"
@@ -302,10 +325,10 @@ export default function PersonalPage() {
           />
 
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">
-              Employment Mode <span className="text-red-500">*</span>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Employment Mode <span className="text-danger-500">*</span>
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {EMPLOYMENT_OPTIONS.map((option) => {
                 const isSelected = form.employmentMode === option.value;
 
@@ -313,8 +336,10 @@ export default function PersonalPage() {
                   <label
                     key={option.value}
                     className={[
-                      'flex flex-col gap-1 p-4 rounded-xl border-2 cursor-pointer transition-all duration-150',
-                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white',
+                      'flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all duration-150',
+                      isSelected
+                        ? 'border-brand-500 bg-brand-50 shadow-glow-sm dark:border-brand-400 dark:bg-brand-950/40'
+                        : 'border-slate-200 bg-slate-50 hover:border-slate-300 dark:border-[#1e293b] dark:bg-[#0A0F1E] dark:hover:border-slate-700',
                       isSubmitting ? 'cursor-not-allowed opacity-60' : '',
                     ].join(' ')}
                   >
@@ -327,16 +352,20 @@ export default function PersonalPage() {
                       disabled={isSubmitting}
                       className="sr-only"
                     />
-                    <span className={`text-sm font-semibold ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                    <span className={isSelected ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-600'} aria-hidden="true">
+                      {option.icon}
+                    </span>
+                    <span className={`text-xs font-medium ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'}`}>
                       {option.label}
                     </span>
-                    <span className="text-xs text-gray-500">{option.description}</span>
+                    <span className="text-2xs text-slate-400 dark:text-slate-600">{option.description}</span>
                   </label>
                 );
               })}
             </div>
             {errors.employmentMode && (
-              <p role="alert" className="text-xs text-red-600 mt-1">
+              <p role="alert" className="mt-1 flex items-center gap-1.5 text-xs text-danger-600 dark:text-danger-400">
+                <AlertCircle className="h-3.5 w-3.5" />
                 {errors.employmentMode}
               </p>
             )}
@@ -350,7 +379,8 @@ export default function PersonalPage() {
             isLoading={isSubmitting}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Checking eligibility...' : 'Check Eligibility & Continue'}
+            <span>Check Eligibility & Continue</span>
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </form>
       </div>

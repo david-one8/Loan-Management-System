@@ -1,6 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import {
+  AlertTriangle,
+  Banknote,
+  ClipboardCheck,
+  Clock,
+  Trophy,
+  XCircle,
+} from 'lucide-react';
 import { get } from '@/lib/api';
 import type { BorrowerLoanResponse, Loan, Payment } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -8,6 +16,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { PageSpinner } from '@/components/ui/Spinner';
 import PaymentHistoryTable from '@/components/loan/PaymentHistoryTable';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 function getStatusText(status: Loan['status']): { title: string; message: string; color: string } {
   switch (status) {
@@ -48,26 +57,24 @@ function RepaymentProgress({ loan }: { loan: Loan }) {
   const pct = loan.totalRepayment > 0 ? Math.min((loan.totalPaid / loan.totalRepayment) * 100, 100) : 0;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600 font-medium">Repayment Progress</span>
-        <span className="text-blue-700 font-bold tabular-nums">{pct.toFixed(1)}%</span>
+        <span className="font-medium text-slate-700 dark:text-slate-300">Repayment Progress</span>
+        <span className="font-bold tabular-nums text-brand-700 dark:text-brand-400">{pct.toFixed(1)}%</span>
       </div>
-      <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-        <div className="h-full rounded-full bg-blue-600 transition-all duration-500" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div>
-          <p className="text-xs text-gray-500">Paid</p>
-          <p className="text-sm font-bold text-green-700 font-mono">{formatCurrency(loan.totalPaid)}</p>
+      <ProgressBar value={Number(pct.toFixed(1))} variant={pct >= 100 ? 'success' : 'gradient'} size="lg" />
+      <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+          <p className="text-2xs uppercase text-slate-400">Paid</p>
+          <p className="font-mono text-sm font-bold tabular-nums text-success-700 dark:text-success-400">{formatCurrency(loan.totalPaid)}</p>
         </div>
-        <div>
-          <p className="text-xs text-gray-500">Outstanding</p>
-          <p className="text-sm font-bold text-red-600 font-mono">{formatCurrency(loan.outstandingBalance)}</p>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+          <p className="text-2xs uppercase text-slate-400">Outstanding</p>
+          <p className="font-mono text-sm font-bold tabular-nums text-danger-600 dark:text-danger-400">{formatCurrency(loan.outstandingBalance)}</p>
         </div>
-        <div>
-          <p className="text-xs text-gray-500">Total</p>
-          <p className="text-sm font-bold text-gray-800 font-mono">{formatCurrency(loan.totalRepayment)}</p>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+          <p className="text-2xs uppercase text-slate-400">Total</p>
+          <p className="font-mono text-sm font-bold tabular-nums text-slate-800 dark:text-slate-200">{formatCurrency(loan.totalRepayment)}</p>
         </div>
       </div>
     </div>
@@ -76,9 +83,31 @@ function RepaymentProgress({ loan }: { loan: Loan }) {
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-semibold text-gray-900">{value}</span>
+    <div className="flex items-center justify-between border-b border-slate-100 py-2.5 last:border-0 dark:border-[#1e293b]">
+      <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{value}</span>
+    </div>
+  );
+}
+
+function StatusIcon({ status }: { status: Loan['status'] }) {
+  const map = {
+    applied: { icon: Clock, color: 'text-brand-600', bg: 'bg-brand-100 dark:bg-brand-950' },
+    sanctioned: { icon: ClipboardCheck, color: 'text-warning-600', bg: 'bg-warning-100 dark:bg-warning-500/15' },
+    disbursed: { icon: Banknote, color: 'text-violet-600', bg: 'bg-violet-100 dark:bg-violet-500/15' },
+    closed: { icon: Trophy, color: 'text-success-600', bg: 'bg-success-100 dark:bg-success-500/15' },
+    rejected: { icon: XCircle, color: 'text-danger-600', bg: 'bg-danger-100 dark:bg-danger-500/15' },
+  };
+  const item = map[status];
+  const Icon = item.icon;
+  const isActive = status !== 'closed' && status !== 'rejected';
+
+  return (
+    <div className={`relative mx-auto mb-5 h-20 w-20 ${item.color}`}>
+      {isActive && <div className="absolute inset-0 rounded-full border-2 border-current opacity-30 animate-pulse-ring" />}
+      <div className={`flex h-20 w-20 items-center justify-center rounded-full ${item.bg}`}>
+        <Icon className="h-9 w-9" />
+      </div>
     </div>
   );
 }
@@ -120,10 +149,10 @@ export default function StatusPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
         <div>
-          <p className="text-base font-semibold text-gray-800">Could not load loan details</p>
-          <p className="text-sm text-gray-500 mt-1">{error}</p>
+          <p className="text-base font-semibold text-slate-800 dark:text-slate-100">Could not load loan details</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{error}</p>
         </div>
         <Button variant="secondary" onClick={fetchLoan}>
           Retry
@@ -138,31 +167,20 @@ export default function StatusPage() {
   const showPayments = loan.status === 'disbursed' || loan.status === 'closed';
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Loan Status</h1>
-          <p className="text-sm text-gray-500 mt-1">Applied on {formatDate(loan.createdAt)}</p>
-        </div>
+    <div className="space-y-5 animate-fade-up">
+      <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
+        <StatusIcon status={loan.status} />
         <Badge status={loan.status} />
+        <h1 className="mt-3 text-xl font-bold text-slate-900 dark:text-slate-50">{status.title}</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{status.message}</p>
+        <p className="mt-3 text-xs text-slate-400 dark:text-slate-600">Applied on {formatDate(loan.createdAt)}</p>
       </div>
 
-      <div className={`${status.color} border rounded-2xl p-5`}>
-        <p className="text-base font-bold">{status.title}</p>
-        <p className="text-sm mt-1 leading-relaxed">{status.message}</p>
-        {loan.status === 'rejected' && loan.rejectionReason && (
-          <div className="mt-3 bg-red-100 rounded-lg px-3 py-2">
-            <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-1">Reason</p>
-            <p className="text-sm text-red-800">{loan.rejectionReason}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-6">
-        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
+        <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           Loan Details
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
+        <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
           <div>
             <SummaryRow label="Loan Amount" value={formatCurrency(loan.amount)} />
             <SummaryRow label="Tenure" value={`${loan.tenure} days`} />
@@ -175,23 +193,33 @@ export default function StatusPage() {
           </div>
         </div>
         {loan.sanctionRemark && (
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+          <div className="mt-4 border-t border-slate-100 pt-4 dark:border-[#1e293b]">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-600">
               Sanction Remark
             </p>
-            <p className="text-sm text-gray-700">{loan.sanctionRemark}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-300">{loan.sanctionRemark}</p>
           </div>
         )}
       </div>
 
+      {loan.status === 'rejected' && loan.rejectionReason && (
+        <div className="flex items-start gap-4 rounded-2xl border border-danger-200 bg-danger-50 p-6 dark:border-danger-900 dark:bg-danger-950/20">
+          <AlertTriangle className="h-6 w-6 flex-shrink-0 text-danger-600 dark:text-danger-400" />
+          <div>
+            <p className="text-sm font-semibold text-danger-800 dark:text-danger-300">Reason for Rejection</p>
+            <p className="mt-1 text-sm text-danger-700 dark:text-danger-400">{loan.rejectionReason}</p>
+          </div>
+        </div>
+      )}
+
       {showPayments && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
           <RepaymentProgress loan={loan} />
         </div>
       )}
 
       {showPayments && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
           <PaymentHistoryTable payments={payments} />
         </div>
       )}
