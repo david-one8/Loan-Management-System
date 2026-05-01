@@ -3,6 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { post } from '@/lib/api';
 import type { AuthTokenResponse, RegisterPayload } from '@/types';
@@ -43,6 +51,15 @@ function validate(form: FormState): FormErrors {
   }
 
   return errors;
+}
+
+function getPasswordStrength(password: string): number {
+  let score = 0;
+  if (password.length >= 6) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  return score;
 }
 
 export default function RegisterPage() {
@@ -112,42 +129,99 @@ export default function RegisterPage() {
 
   if (authLoading) return null;
 
+  const strength = getPasswordStrength(form.password);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-md">
-            <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Create an account</h1>
-          <p className="text-sm text-gray-500 mt-1">Apply for a loan in minutes</p>
-        </div>
+    <div className="grid min-h-screen lg:grid-cols-2">
+      <section className="relative hidden overflow-hidden bg-gradient-to-br from-[#0A0F1E] via-[#111827] to-[#0f172a] lg:flex">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute -right-32 -top-32 h-[520px] w-[520px] rounded-full bg-gradient-radial from-violet-600 to-transparent opacity-20 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 h-[420px] w-[420px] rounded-full bg-gradient-radial from-brand-600 to-transparent opacity-10 blur-3xl" />
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-card p-8">
-          {apiError && (
-            <div role="alert" className="mb-5 flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-sm text-red-700 font-medium">{apiError}</p>
+        <div className="relative z-10 flex h-full w-full flex-col p-12">
+          <div className="mb-auto flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-base font-bold text-white shadow-sm">
+              L
             </div>
-          )}
+            <span className="text-2xl font-bold text-white">LMS</span>
+          </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            <Input
-              label="Email address"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              error={errors.email}
-              placeholder="you@example.com"
-              autoComplete="email"
-              autoFocus
-              required
-              disabled={isSubmitting}
-            />
+          <div>
+            <h1 className="max-w-lg text-4xl font-bold leading-tight text-white">
+              Start your loan journey
+            </h1>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-slate-400">
+              Join thousands who trust LMS for their financing needs.
+            </p>
 
-            <div className="relative">
+            <div className="mt-10 space-y-4">
+              {[
+                ['1', 'Create your account', 'Quick and secure registration'],
+                ['2', 'Complete your profile', 'Basic KYC and eligibility check'],
+                ['3', 'Get your loan', 'Apply and track in real-time'],
+              ].map(([number, title, desc]) => (
+                <div key={number} className="flex items-start gap-4">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-white">
+                    {number}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{title}</p>
+                    <p className="mt-0.5 text-xs text-slate-400">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-auto flex items-center gap-3 border-t border-white/10 pt-8 text-sm text-slate-400">
+            <CheckCircle2 className="h-4 w-4 text-success-500" />
+            Secure borrower onboarding with role-aware access.
+          </div>
+        </div>
+      </section>
+
+      <section className="flex items-center justify-center bg-slate-50 p-6 sm:p-10 dark:bg-[#0A0F1E]">
+        <div className="w-full max-w-sm animate-fade-up">
+          <div className="mb-8 flex items-center gap-2 lg:hidden">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-sm font-bold text-white">
+              L
+            </div>
+            <span className="text-xl font-bold text-slate-900 dark:text-slate-50">LMS</span>
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+              Create an account
+            </h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Apply for a loan in minutes
+            </p>
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-card dark:border-[#1e293b] dark:bg-[#111827]">
+            {apiError && (
+              <div role="alert" className="mb-5 flex animate-shake items-center gap-3 rounded-xl border border-danger-200 bg-danger-50 p-3.5 dark:border-danger-500/20 dark:bg-danger-500/10">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 text-danger-600 dark:text-danger-400" />
+                <p className="text-sm font-medium text-danger-700 dark:text-danger-400">{apiError}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              <Input
+                label="Email address"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                error={errors.email}
+                placeholder="you@example.com"
+                autoComplete="email"
+                autoFocus
+                required
+                disabled={isSubmitting}
+                prefix={<Mail />}
+              />
+
               <Input
                 label="Password"
                 name="password"
@@ -159,51 +233,75 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 disabled={isSubmitting}
+                prefix={<Lock />}
+                suffix={
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((value) => !value)}
+                    className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                }
               />
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowPassword((value) => !value)}
-                className="absolute right-3 top-8.5 text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+
+              <div className="grid grid-cols-4 gap-1.5">
+                {[1, 2, 3, 4].map((bar) => (
+                  <div
+                    key={bar}
+                    className={[
+                      'h-1 rounded-full transition-colors',
+                      strength >= bar
+                        ? strength === 1
+                          ? 'bg-danger-500'
+                          : strength === 2
+                          ? 'bg-warning-500'
+                          : strength === 3
+                          ? 'bg-yellow-400'
+                          : 'bg-success-500'
+                        : 'bg-slate-100 dark:bg-slate-800',
+                    ].join(' ')}
+                  />
+                ))}
+              </div>
+
+              <Input
+                label="Confirm password"
+                name="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={handleChange}
+                error={errors.confirmPassword}
+                placeholder="Re-enter your password"
+                autoComplete="new-password"
+                required
+                disabled={isSubmitting}
+                prefix={<Lock />}
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                fullWidth
+                isLoading={isSubmitting}
+                disabled={isSubmitting}
               >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
+                Create account
+              </Button>
+            </form>
+          </div>
 
-            <Input
-              label="Confirm password"
-              name="confirmPassword"
-              type={showPassword ? 'text' : 'password'}
-              value={form.confirmPassword}
-              onChange={handleChange}
-              error={errors.confirmPassword}
-              placeholder="Re-enter your password"
-              autoComplete="new-password"
-              required
-              disabled={isSubmitting}
-            />
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              isLoading={isSubmitting}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Creating account...' : 'Create account'}
-            </Button>
-          </form>
+          <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+              Sign in
+            </Link>
+          </p>
         </div>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 font-medium hover:text-blue-700 hover:underline transition-colors">
-            Sign in
-          </Link>
-        </p>
-      </div>
+      </section>
     </div>
   );
 }
