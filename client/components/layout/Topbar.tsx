@@ -1,75 +1,69 @@
 'use client';
 
-import React from 'react';
+import {
+  Bell,
+  ChevronDown,
+  Menu,
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 interface TopbarProps {
   title: string;
   onMobileMenuToggle?: () => void;
-  /** Slot for extra controls (e.g. buttons) on the right */
   actions?: React.ReactNode;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Topbar({ title, onMobileMenuToggle, actions }: TopbarProps) {
   const { user } = useAuth();
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 shrink-0 z-20">
-      {/* Left: hamburger (mobile) + page title */}
-      <div className="flex items-center gap-3 min-w-0">
-        {/* Mobile menu toggle */}
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl md:px-6 dark:border-[#1e293b] dark:bg-[#0A0F1E]/80">
+      <div className="flex min-w-0 items-center gap-3">
         {onMobileMenuToggle && (
           <button
             type="button"
             onClick={onMobileMenuToggle}
             aria-label="Toggle navigation menu"
-            className="lg:hidden p-2 -ml-1 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            className="rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 md:hidden dark:text-slate-400 dark:hover:bg-slate-800"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu className="h-5 w-5" />
           </button>
         )}
 
-        {/* Page title */}
-        <h1 className="text-lg font-semibold text-gray-900 truncate">{title}</h1>
+        <h1 className="truncate text-lg font-semibold text-slate-900 dark:text-slate-50">
+          {title}
+        </h1>
       </div>
 
-      {/* Right: action slot + user avatar */}
-      <div className="flex items-center gap-3 shrink-0">
-        {actions && <div className="hidden sm:flex items-center gap-2">{actions}</div>}
+      <div className="flex shrink-0 items-center gap-2">
+        {actions && <div className="hidden items-center gap-2 sm:flex">{actions}</div>}
 
-        {/* User avatar */}
+        <ThemeToggle />
+
+        <button
+          type="button"
+          aria-label="Notifications"
+          className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-danger-500 dark:border-slate-800" />
+        </button>
+
         {user && (
-          <div
-            className="relative group"
-            title={`${user.email} · ${user.role}`}
-          >
-            <div
-              aria-label={`Logged in as ${user.email}`}
-              className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold cursor-default select-none ring-2 ring-offset-1 ring-transparent group-hover:ring-blue-200 transition-all"
-            >
-              {getInitials(user.email)}
+          <>
+            <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block dark:bg-slate-700" />
+            <div className="flex cursor-default items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-400 to-brand-700 text-xs font-bold text-white">
+                {getInitials(user.email)}
+              </div>
+              <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 md:block dark:text-slate-300">
+                {user.email}
+              </span>
+              <ChevronDown className="hidden h-3.5 w-3.5 text-slate-400 md:block" />
             </div>
-
-            {/* Hover tooltip */}
-            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg p-3 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 pointer-events-none">
-              <p className="text-xs font-medium text-gray-900 truncate">{user.email}</p>
-              <p className="text-xs text-gray-500 mt-0.5 capitalize">{user.role}</p>
-            </div>
-          </div>
+          </>
         )}
       </div>
     </header>

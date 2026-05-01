@@ -1,14 +1,17 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  Banknote,
+  ClipboardCheck,
+  LogOut,
+  Receipt,
+  Users,
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils';
 import type { User } from '@/types';
-import Badge from '@/components/ui/Badge';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface NavItem {
   label: string;
@@ -17,66 +20,32 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-// ─── Icons (inline SVG to avoid any icon library dep) ────────────────────────
-
-const icons = {
-  users: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  ),
-  checkCircle: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  banknotes: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75" />
-    </svg>
-  ),
-  collection: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-    </svg>
-  ),
-  logout: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-    </svg>
-  ),
-};
-
-// ─── Nav Items ────────────────────────────────────────────────────────────────
-
 const NAV_ITEMS: NavItem[] = [
   {
     label: 'Sales',
     href: '/dashboard/sales',
     roles: ['admin', 'sales'],
-    icon: icons.users,
+    icon: <Users className="h-5 w-5" />,
   },
   {
     label: 'Sanction',
     href: '/dashboard/sanction',
     roles: ['admin', 'sanction'],
-    icon: icons.checkCircle,
+    icon: <ClipboardCheck className="h-5 w-5" />,
   },
   {
     label: 'Disbursement',
     href: '/dashboard/disbursement',
     roles: ['admin', 'disbursement'],
-    icon: icons.banknotes,
+    icon: <Banknote className="h-5 w-5" />,
   },
   {
     label: 'Collection',
     href: '/dashboard/collection',
     roles: ['admin', 'collection'],
-    icon: icons.collection,
+    icon: <Receipt className="h-5 w-5" />,
   },
 ];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -96,34 +65,24 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   }
 
   const sidebarContent = (
-    <aside className="flex flex-col h-full bg-white border-r border-gray-200 w-64">
-      {/* Logo / Brand */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200 shrink-0">
-        {/* LMS Logo mark */}
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
-          <svg
-            className="w-5 h-5 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+    <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-white dark:border-[#1e293b] dark:bg-[#0A0F1E]">
+      <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4 dark:border-[#1e293b]">
+        <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 text-sm font-bold text-white shadow-sm">
+          L
         </div>
         <div>
-          <p className="text-sm font-bold text-gray-900 leading-tight">LMS</p>
-          <p className="text-xs text-gray-500 leading-tight">Operations Portal</p>
+          <p className="text-sm font-bold leading-tight text-slate-900 dark:text-slate-50">LMS</p>
+          <p className="text-2xs leading-tight text-slate-400 dark:text-slate-600">
+            Loan Management
+          </p>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto" aria-label="Main navigation">
-        <ul className="space-y-1" role="list">
+      <nav className="flex-1 overflow-y-auto" aria-label="Main navigation">
+        <p className="px-4 pb-2 pt-5 text-2xs font-semibold uppercase tracking-[0.08em] text-slate-400 dark:text-slate-600">
+          Modules
+        </p>
+        <ul className="space-y-0.5 px-3" role="list">
           {visibleItems.map((item) => {
             const active = isActive(item.href);
             return (
@@ -132,16 +91,21 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
                   href={item.href}
                   onClick={onMobileClose}
                   className={[
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
-                    'transition-colors duration-150',
+                    'relative flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150',
                     active
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+                      ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-400'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-[#1a2236] dark:hover:text-slate-200',
                   ].join(' ')}
                   aria-current={active ? 'page' : undefined}
                 >
+                  {active && (
+                    <span className="absolute bottom-2 left-0 top-2 w-0.5 rounded-full bg-brand-600 dark:bg-brand-400" />
+                  )}
                   <span
-                    className={active ? 'text-blue-600' : 'text-gray-400'}
+                    className={[
+                      'flex-shrink-0 transition-colors',
+                      active ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-600',
+                    ].join(' ')}
                     aria-hidden="true"
                   >
                     {item.icon}
@@ -154,33 +118,29 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         </ul>
       </nav>
 
-      {/* User footer */}
       {user && (
-        <div className="px-3 py-4 border-t border-gray-200 shrink-0">
-          {/* User info */}
-          <div className="flex items-center gap-3 px-3 py-2 mb-1">
-            {/* Avatar */}
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0 select-none">
+        <div className="mt-auto border-t border-slate-100 p-3 dark:border-[#1e293b]">
+          <div className="mb-1 flex cursor-default items-center gap-3 rounded-xl p-3 transition-colors hover:bg-slate-50 dark:hover:bg-[#1a2236]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-xs font-bold text-white">
               {getInitials(user.email)}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-gray-900 truncate">
-                {user.email}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                {user.email.split('@')[0]}
               </p>
-              <div className="mt-0.5">
-                <Badge status={user.role} />
-              </div>
+              <p className="text-2xs capitalize text-slate-400 dark:text-slate-600">
+                {user.role}
+              </p>
             </div>
           </div>
 
-          {/* Logout */}
           <button
             type="button"
             onClick={logout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors duration-150"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all duration-150 hover:bg-danger-50 hover:text-danger-600 dark:text-slate-400 dark:hover:bg-danger-500/10 dark:hover:text-danger-400"
           >
-            <span aria-hidden="true">{icons.logout}</span>
-            Log out
+            <LogOut className="h-4 w-4" />
+            Sign Out
           </button>
         </div>
       )}
@@ -189,24 +149,27 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
 
   return (
     <>
-      {/* Desktop sidebar — always visible */}
-      <div className="hidden lg:flex lg:flex-col lg:h-full">{sidebarContent}</div>
+      <div className="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-64 md:flex-col">
+        {sidebarContent}
+      </div>
 
-      {/* Mobile sidebar — slide in over content */}
-      {mobileOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-            onClick={onMobileClose}
-            aria-hidden="true"
-          />
-          {/* Panel */}
-          <div className="fixed inset-y-0 left-0 z-50 lg:hidden flex flex-col">
-            {sidebarContent}
-          </div>
-        </>
-      )}
+      <div
+        className={[
+          'fixed inset-0 z-30 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 md:hidden',
+          mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
+        ].join(' ')}
+        onClick={onMobileClose}
+        aria-hidden="true"
+      />
+
+      <div
+        className={[
+          'fixed inset-y-0 left-0 z-40 flex transform flex-col transition-transform duration-300 md:hidden',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+        ].join(' ')}
+      >
+        {sidebarContent}
+      </div>
     </>
   );
 }
