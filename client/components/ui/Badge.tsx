@@ -1,7 +1,3 @@
-import React from 'react';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type BadgeStatus =
   | 'applied'
   | 'sanctioned'
@@ -21,57 +17,81 @@ interface BadgeProps {
   className?: string;
 }
 
-// ─── Color Map ────────────────────────────────────────────────────────────────
-
-const colorMap: Record<string, string> = {
-  // Loan statuses
-  applied:    'bg-blue-100 text-blue-800 border border-blue-200',
-  sanctioned: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-  disbursed:  'bg-purple-100 text-purple-800 border border-purple-200',
-  closed:     'bg-green-100 text-green-800 border border-green-200',
-  rejected:   'bg-red-100 text-red-800 border border-red-200',
-
-  // BRE statuses
-  passed:  'bg-green-100 text-green-800 border border-green-200',
-  failed:  'bg-red-100 text-red-800 border border-red-200',
-  pending: 'bg-gray-100 text-gray-700 border border-gray-200',
-
-  // Lead / profile statuses
-  'Profile Complete': 'bg-green-100 text-green-800 border border-green-200',
-  'No Profile':       'bg-gray-100 text-gray-600 border border-gray-200',
-  'BRE Failed':       'bg-red-100 text-red-800 border border-red-200',
+const statusMap: Record<string, { badge: string; dot: string }> = {
+  applied: {
+    badge: 'bg-brand-50 text-brand-700 border-brand-100 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-900',
+    dot: 'bg-brand-500 animate-pulse',
+  },
+  sanctioned: {
+    badge: 'bg-warning-50 text-warning-700 border-warning-100 dark:bg-warning-500/10 dark:text-warning-400 dark:border-warning-500/20',
+    dot: 'bg-warning-500 animate-pulse',
+  },
+  disbursed: {
+    badge: 'bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20',
+    dot: 'bg-violet-500 animate-pulse',
+  },
+  closed: {
+    badge: 'bg-success-50 text-success-700 border-success-100 dark:bg-success-500/10 dark:text-success-400 dark:border-success-500/20',
+    dot: 'bg-success-500',
+  },
+  rejected: {
+    badge: 'bg-danger-50 text-danger-700 border-danger-100 dark:bg-danger-500/10 dark:text-danger-400 dark:border-danger-500/20',
+    dot: 'bg-danger-500',
+  },
+  passed: {
+    badge: 'bg-success-50 text-success-700 border-success-100 dark:bg-success-500/10 dark:text-success-400 dark:border-success-500/20',
+    dot: 'bg-success-500',
+  },
+  failed: {
+    badge: 'bg-danger-50 text-danger-700 border-danger-100 dark:bg-danger-500/10 dark:text-danger-400 dark:border-danger-500/20',
+    dot: 'bg-danger-500',
+  },
+  pending: {
+    badge: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
+    dot: 'bg-slate-400',
+  },
+  'Profile Complete': {
+    badge: 'bg-success-50 text-success-700 border-success-100 dark:bg-success-500/10 dark:text-success-400 dark:border-success-500/20',
+    dot: 'bg-success-500',
+  },
+  'No Profile': {
+    badge: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
+    dot: 'bg-slate-400',
+  },
+  'BRE Failed': {
+    badge: 'bg-danger-50 text-danger-700 border-danger-100 dark:bg-danger-500/10 dark:text-danger-400 dark:border-danger-500/20',
+    dot: 'bg-danger-500',
+  },
 };
 
-const fallback = 'bg-gray-100 text-gray-700 border border-gray-200';
-
-// ─── Label Formatter ──────────────────────────────────────────────────────────
+const fallback = {
+  badge: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
+  dot: 'bg-slate-400',
+};
 
 function formatLabel(status: string): string {
-  // Already correctly cased multi-word statuses
   if (['No Profile', 'Profile Complete', 'BRE Failed'].includes(status)) {
     return status;
   }
-  // Capitalise first letter
+
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function Badge({ status, className = '' }: BadgeProps) {
-  const colorClasses = colorMap[status] ?? fallback;
+  const color = statusMap[status] ?? fallback;
 
   return (
     <span
       className={[
-        'inline-flex items-center px-2.5 py-0.5',
-        'text-xs font-medium rounded-full',
-        'whitespace-nowrap',
-        colorClasses,
+        'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1',
+        'text-xs font-semibold whitespace-nowrap',
+        color.badge,
         className,
       ]
         .filter(Boolean)
         .join(' ')}
     >
+      <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${color.dot}`} />
       {formatLabel(status)}
     </span>
   );

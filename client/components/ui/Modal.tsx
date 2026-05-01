@@ -2,21 +2,16 @@
 
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  /** Max width class, e.g. "max-w-lg" */
   maxWidth?: string;
-  /** Prevent close on backdrop click */
   disableBackdropClose?: boolean;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Modal({
   isOpen,
@@ -29,7 +24,6 @@ export default function Modal({
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
@@ -40,7 +34,6 @@ export default function Modal({
     }
   }, [isOpen]);
 
-  // Close on Escape key
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && isOpen) {
@@ -51,7 +44,6 @@ export default function Modal({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Focus trap — move focus into panel on open
   useEffect(() => {
     if (isOpen) {
       const firstFocusable = panelRef.current?.querySelector<HTMLElement>(
@@ -63,7 +55,6 @@ export default function Modal({
 
   if (!isOpen) return null;
 
-  // Handle backdrop click
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
     if (!disableBackdropClose && e.target === overlayRef.current) {
       onClose();
@@ -74,12 +65,7 @@ export default function Modal({
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className={[
-        'fixed inset-0 z-50',
-        'flex items-center justify-center p-4',
-        'bg-black/40 backdrop-blur-sm',
-        'animate-in fade-in duration-150',
-      ].join(' ')}
+      className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-950/75 p-0 backdrop-blur-sm sm:items-center sm:p-4 dark:bg-slate-950/90"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -87,59 +73,32 @@ export default function Modal({
       <div
         ref={panelRef}
         className={[
-          'relative bg-white rounded-2xl shadow-xl',
-          'w-full',
+          'flex max-h-[90vh] w-full flex-col overflow-hidden',
+          'rounded-t-3xl border-t border-slate-200 bg-white shadow-card-lg',
+          'animate-fade-up sm:rounded-2xl sm:border',
+          'dark:border-[#1e293b] dark:bg-[#111827]',
           maxWidth,
-          'max-h-[90vh] overflow-y-auto',
-          'flex flex-col',
         ].join(' ')}
-        style={{ animation: 'modalEnter 0.2s ease-out' }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
-          <h3
-            id="modal-title"
-            className="text-base font-semibold text-gray-900"
-          >
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-5 dark:border-[#1e293b]">
+          <h3 id="modal-title" className="text-base font-semibold text-slate-900 dark:text-slate-100">
             {title}
           </h3>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-6 py-5 flex-1">{children}</div>
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">{children}</div>
       </div>
-
-      {/* Inline keyframe for modal enter animation */}
-      <style>{`
-        @keyframes modalEnter {
-          from { opacity: 0; transform: scale(0.96) translateY(8px); }
-          to   { opacity: 1; transform: scale(1)    translateY(0);   }
-        }
-      `}</style>
     </div>
   );
 
-  // Render into portal so it escapes any overflow:hidden ancestors
   if (typeof document === 'undefined') return null;
   return createPortal(modalContent, document.body);
 }

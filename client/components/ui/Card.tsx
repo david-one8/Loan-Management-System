@@ -1,14 +1,15 @@
 import React from 'react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+type CardVariant = 'default' | 'elevated' | 'flat' | 'brand' | 'success' | 'danger';
+type CardPadding = 'sm' | 'md' | 'lg';
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  /** Removes default padding — useful for full-bleed tables inside cards */
   noPadding?: boolean;
-  /** Removes shadow, keeps border */
   flat?: boolean;
+  variant?: CardVariant;
+  padding?: CardPadding;
 }
 
 interface CardHeaderProps {
@@ -21,19 +22,40 @@ interface CardHeaderProps {
 interface CardSectionProps {
   children: React.ReactNode;
   className?: string;
-  /** Add a top divider line */
   divided?: boolean;
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+const variantMap: Record<CardVariant, string> = {
+  default: 'border-slate-200 bg-white shadow-card dark:border-[#1e293b] dark:bg-[#111827]',
+  elevated: 'border-slate-200 bg-white shadow-card-lg dark:border-[#1e293b] dark:bg-[#111827]',
+  flat: 'border-slate-100 bg-white shadow-none dark:border-slate-800 dark:bg-[#111827]',
+  brand: 'border-brand-200 bg-brand-50/50 shadow-card dark:border-brand-900 dark:bg-brand-950/20',
+  success: 'border-success-200 bg-success-50/50 shadow-card dark:border-success-900 dark:bg-success-950/20',
+  danger: 'border-danger-200 bg-danger-50/50 shadow-card dark:border-danger-900 dark:bg-danger-950/20',
+};
+
+const paddingMap: Record<CardPadding, string> = {
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+};
 
 export function CardHeader({ title, subtitle, action, className = '' }: CardHeaderProps) {
   return (
-    <div className={`flex items-start justify-between gap-4 ${className}`}>
+    <div
+      className={[
+        'flex items-center justify-between gap-4 border-b border-slate-100 px-6 py-4 dark:border-[#1e293b]',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="min-w-0">
-        <h2 className="text-lg font-semibold text-gray-900 truncate">{title}</h2>
+        <h2 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
+          {title}
+        </h2>
         {subtitle && (
-          <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -45,7 +67,7 @@ export function CardSection({ children, className = '', divided = false }: CardS
   return (
     <div
       className={[
-        divided ? 'border-t border-gray-200 pt-4 mt-4' : '',
+        divided ? 'mt-4 border-t border-slate-100 pt-4 dark:border-[#1e293b]' : '',
         className,
       ]
         .filter(Boolean)
@@ -56,20 +78,22 @@ export function CardSection({ children, className = '', divided = false }: CardS
   );
 }
 
-// ─── Main Card ────────────────────────────────────────────────────────────────
-
 export default function Card({
   children,
   className = '',
   noPadding = false,
   flat = false,
+  variant = 'default',
+  padding = 'md',
 }: CardProps) {
+  const resolvedVariant = flat ? 'flat' : variant;
+
   return (
     <div
       className={[
-        'bg-white rounded-xl border border-gray-200',
-        flat ? '' : 'shadow-card',
-        noPadding ? 'overflow-hidden' : 'p-6',
+        'rounded-2xl border',
+        variantMap[resolvedVariant],
+        noPadding ? 'overflow-hidden' : paddingMap[padding],
         className,
       ]
         .filter(Boolean)
